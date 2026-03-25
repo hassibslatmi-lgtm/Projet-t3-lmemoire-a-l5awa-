@@ -58,7 +58,7 @@ export default function SignupPage() {
         {/* Right Side: Multi-step Signup Form */}
         <section className="flex-1 flex flex-col items-center justify-center px-6 py-12 md:px-16 lg:px-24 bg-surface">
           <div className="w-full max-w-xl">
-             {/* Mobile Logo  */}
+            {/* Mobile Logo  */}
             <div className="md:hidden flex items-center gap-3 mb-8">
               <div className="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
                 <span
@@ -83,31 +83,28 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setRole('Farmer')}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${
-                    role === 'Farmer' ? 'border-primary bg-primary-fixed/20 text-primary' : 'border-transparent bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${role === 'Farmer' ? 'border-primary bg-primary-fixed/20 text-primary' : 'border-transparent bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+                    }`}
                 >
-                  <span className="material-symbols-outlined mb-2" style={role === 'Farmer' ? {fontVariationSettings: "'FILL' 1"} : {}}>agriculture</span>
+                  <span className="material-symbols-outlined mb-2" style={role === 'Farmer' ? { fontVariationSettings: "'FILL' 1" } : {}}>agriculture</span>
                   <span className="text-xs font-bold">Farmer</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('Buyer')}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${
-                    role === 'Buyer' ? 'border-primary bg-primary-fixed/20 text-primary' : 'border-transparent bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${role === 'Buyer' ? 'border-primary bg-primary-fixed/20 text-primary' : 'border-transparent bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+                    }`}
                 >
-                  <span className="material-symbols-outlined mb-2" style={role === 'Buyer' ? {fontVariationSettings: "'FILL' 1"} : {}}>shopping_basket</span>
+                  <span className="material-symbols-outlined mb-2" style={role === 'Buyer' ? { fontVariationSettings: "'FILL' 1" } : {}}>shopping_basket</span>
                   <span className="text-xs font-bold">Buyer</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('Transporter')}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${
-                    role === 'Transporter' ? 'border-primary bg-primary-fixed/20 text-primary' : 'border-transparent bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${role === 'Transporter' ? 'border-primary bg-primary-fixed/20 text-primary' : 'border-transparent bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+                    }`}
                 >
-                  <span className="material-symbols-outlined mb-2" style={role === 'Transporter' ? {fontVariationSettings: "'FILL' 1"} : {}}>local_shipping</span>
+                  <span className="material-symbols-outlined mb-2" style={role === 'Transporter' ? { fontVariationSettings: "'FILL' 1" } : {}}>local_shipping</span>
                   <span className="text-xs font-bold">Transporter</span>
                 </button>
               </div>
@@ -168,10 +165,22 @@ export default function SignupPage() {
                 </div>
 
                 {role === 'Farmer' && (
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-on-surface">Farmer Card Number</label>
-                    <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" required placeholder="F-8892-XXXX" type="text" />
-                  </div>
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-on-surface">Farmer Card Number</label>
+                      <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" required placeholder="F-8892-XXXX" type="text" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-on-surface">Farm Area (Hectares)</label>
+                        <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" required placeholder="25.5" type="number" step="0.1" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-on-surface">Farm Location</label>
+                        <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" required placeholder="City, Province" type="text" />
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {role === 'Buyer' && (
@@ -199,6 +208,16 @@ export default function SignupPage() {
                     <div className="space-y-1.5">
                       <label className="text-sm font-semibold text-on-surface">License Expiry Date</label>
                       <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" required type="date" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-on-surface">Vehicle Name</label>
+                        <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" required placeholder="Toyota Hilux" type="text" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-on-surface">Vehicle Year (Optional)</label>
+                        <input className="w-full px-4 py-3 bg-surface-container-lowest rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface transition-all border outline-none" placeholder="2022" type="number" min="1900" max="2099" />
+                      </div>
                     </div>
                   </>
                 )}

@@ -13,7 +13,7 @@ export default function LoginPage() {
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtutIcRE7Z3e_q55icmD-Fp8ves6JDlFr3d8JLDREiNwFGBCPudmMrAIPUtX5xvEbrhWqvZHkEoocBAb5Jt_PnaLmapv84m2dxTz5gVBM9j-ZNCw6KDeEd4NX5-N3LW5ytzmHCr6euZ0KOj9Mb5l2VwOVFvjZJsRE78EwWDPeOWTMN7QkfC4fINAAy41O70at_YCmfXNMWPiY_PguAstENJWX2s7IHukBEOntUtGoRhlXPj4KS3YnsP94sQOj1IrtEwSnnivCAHIw"
           />
           <div className="relative z-10 flex flex-col justify-between p-12 h-full w-full">
-             {/* Branding Anchor  */}
+            {/* Branding Anchor  */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-secondary-fixed rounded-lg flex items-center justify-center">
                 <span
@@ -27,7 +27,7 @@ export default function LoginPage() {
                 AgriGov
               </span>
             </div>
-             {/* Editorial Content  */}
+            {/* Editorial Content  */}
             <div className="max-w-lg">
               <div className="glass-badge inline-flex items-center gap-2 px-3 py-1 rounded-full mb-6">
                 <span
@@ -48,19 +48,19 @@ export default function LoginPage() {
                 transparent pricing, and direct supply chains.
               </p>
             </div>
-             {/* Subtle Footer Reference  */}
+            {/* Subtle Footer Reference  */}
             <div className="text-white/40 text-sm">
               © 2026 AgriGov. Secure Government Infrastructure.
             </div>
           </div>
-           {/* Decorative Organic Gradient Overlay  */}
+          {/* Decorative Organic Gradient Overlay  */}
           <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-primary to-transparent opacity-60"></div>
         </section>
-        
-         {/* Form Side  */}
+
+        {/* Form Side  */}
         <section className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 bg-surface">
           <div className="w-full max-w-md">
-             {/* Mobile Logo (Hidden on Desktop)  */}
+            {/* Mobile Logo (Hidden on Desktop)  */}
             <div className="lg:hidden flex items-center gap-3 mb-12">
               <div className="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
                 <span
@@ -83,7 +83,7 @@ export default function LoginPage() {
               </p>
             </div>
             <form className="space-y-6">
-               {/* Email Field  */}
+              {/* Email Field  */}
               <div className="space-y-2">
                 <label
                   className="block text-sm font-bold text-on-surface tracking-wide uppercase"
@@ -107,7 +107,7 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-               {/* Password Field  */}
+              {/* Password Field  */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label
@@ -145,7 +145,7 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-               {/* Actions  */}
+              {/* Actions  */}
               <div className="flex items-center">
                 <input
                   className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-background bg-surface-container-low transition-colors outline-none cursor-pointer border"
@@ -160,7 +160,7 @@ export default function LoginPage() {
                   Remember this device
                 </label>
               </div>
-               {/* Primary Action  */}
+              {/* Primary Action  */}
               <button
                 className="w-full py-4 px-6 bg-primary text-on-primary font-headline font-bold text-lg rounded-lg editorial-shadow hover:bg-primary/95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 type="submit"
@@ -171,7 +171,7 @@ export default function LoginPage() {
                 </span>
               </button>
             </form>
-             {/* Footer Link  */}
+            {/* Footer Link  */}
             <div className="mt-10 pt-10 border-t border-outline-variant/30 text-center">
               <p className="text-on-surface-variant font-medium">
                 Don't have an account?
@@ -183,7 +183,7 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-             {/* Trust Indicators  */}
+            {/* Trust Indicators  */}
             <div className="mt-12 grid grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-surface-container-low flex items-center gap-3">
                 <span
