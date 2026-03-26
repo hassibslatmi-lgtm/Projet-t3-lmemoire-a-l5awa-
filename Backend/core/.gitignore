@@ -1,0 +1,22 @@
+# React / Frontend
+node_modules/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Django / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+db.sqlite3
+media/
+
+# IDE / System
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgriGov Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2c5926",
+                        "background-light": "#f6f7f6",
+                        "background-dark": "#161d15",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex min-h-screen">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-primary/10 flex flex-col fixed h-full z-50">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-white">
+<span class="material-symbols-outlined text-2xl">agriculture</span>
+</div>
+<h2 class="text-primary text-xl font-bold tracking-tight">AgriGov</h2>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg shadow-md shadow-primary/20" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">Accounts</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-medium">Categories</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-medium">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">report_problem</span>
+<span class="font-medium">Complaints</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-medium">Statistics</span>
+</a>
+<div class="pt-4 border-t border-primary/10 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-primary/10">
+<div class="flex items-center gap-3 p-2 bg-primary/5 rounded-xl">
+<div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">JD</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-bold truncate">John Doe</p>
+<p class="text-xs text-slate-500 truncate">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Body -->
+<main class="flex-1 ml-64 flex flex-col min-h-screen">
+<!-- Header -->
+<header class="h-16 bg-white dark:bg-slate-900 border-b border-primary/10 px-8 flex items-center justify-between sticky top-0 z-40">
+<div class="flex-1 max-w-md">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-primary/5 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search data, reports, or users..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 ml-8">
+<button class="size-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-primary/5 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
+</button>
+<button class="size-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-px bg-primary/10 mx-2"></div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-primary/20" data-alt="Admin user profile picture profile" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBRH19oqjUyjLUFcR_CRmqLnoRHuCAGU6YWrcNnFfkCu7uo8oJgZ_ktLjPs6wKk29DmhxvGKi7wDNVbxxGU0iwiTmZeP1ftV0kgjYwfxaYMf5aL_WIiDZtLT0ULIlY3bgf39S3XT8TUxiw-i0NXEgcwddfdtBE11o-oM5gY25i60Bqd0wavUmd2nuDAxsjTp3e6fLdUsxznymscRGJVzR3qnco-sKtL9ajbwCmYopii89Dnj5ZxHjuJ3muJPuUI2gCXg6sblc0GNYM')"></div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 space-y-8 flex-1">
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">person</span>
+<span class="text-xs font-bold text-green-600">+12%</span>
+</div>
+<h3 class="text-slate-500 text-sm font-medium">Total Users</h3>
+<p class="text-2xl font-bold mt-1">1,250</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-amber-600 bg-amber-50 p-2 rounded-lg">pending_actions</span>
+<span class="text-xs font-bold text-amber-600">Pending</span>
+</div>
+<h3 class="text-slate-500 text-sm font-medium">Pending Accounts</h3>
+<p class="text-2xl font-bold mt-1">42</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-lg">payments</span>
+<span class="text-xs font-bold text-blue-600">Monthly</span>
+</div>
+<h3 class="text-slate-500 text-sm font-medium">Total Transactions</h3>
+<p class="text-2xl font-bold mt-1">$45,280</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-red-600 bg-red-50 p-2 rounded-lg">emergency</span>
+<span class="text-xs font-bold text-red-600">Action Required</span>
+</div>
+<h3 class="text-slate-500 text-sm font-medium">Active Complaints</h3>
+<p class="text-2xl font-bold mt-1">8</p>
+</div>
+</div>
+<!-- Quick Actions -->
+<section>
+<h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">bolt</span>
+                        Quick Actions
+                    </h3>
+<div class="flex flex-wrap gap-4">
+<button class="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-4 rounded-xl border border-primary/10 hover:border-primary transition-all shadow-sm group">
+<span class="material-symbols-outlined text-primary bg-primary/5 p-2 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">how_to_reg</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">Validate Accounts</span>
+</button>
+<button class="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-4 rounded-xl border border-primary/10 hover:border-primary transition-all shadow-sm group">
+<span class="material-symbols-outlined text-primary bg-primary/5 p-2 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">category_search</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">Manage Categories</span>
+</button>
+<button class="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-4 rounded-xl border border-primary/10 hover:border-primary transition-all shadow-sm group">
+<span class="material-symbols-outlined text-primary bg-primary/5 p-2 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">forum</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">View Complaints</span>
+</button>
+</div>
+</section>
+<!-- Activity Table -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-primary/10 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-primary/10 flex items-center justify-between">
+<h3 class="text-lg font-bold">Recent Activity</h3>
+<button class="text-primary text-sm font-bold hover:underline">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-primary/5 text-slate-500 uppercase text-xs font-bold tracking-wider">
+<tr>
+<th class="px-6 py-4">Action</th>
+<th class="px-6 py-4">User</th>
+<th class="px-6 py-4">Entity</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+<span class="font-medium">Account Verified</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">Green Valley Farms</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">Merchant Account</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">2 mins ago</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-amber-600 text-lg">edit</span>
+<span class="font-medium">Category Updated</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">System Admin</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">Organic Fertilizers</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">15 mins ago</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">Success</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-red-600 text-lg">warning</span>
+<span class="font-medium">Complaint Filed</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">AgroTrade Ltd</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">Transaction #84920</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">1 hour ago</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">Pending</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg">add_card</span>
+<span class="font-medium">Payment Received</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">Central Co-op</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">Annual License</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-400">3 hours ago</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Verified</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="p-8 border-t border-primary/10 text-center">
+<div class="flex items-center justify-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary">agriculture</span>
+<span class="text-primary font-bold">AgriGov</span>
+</div>
+<p class="text-slate-500 text-sm">© 2024 AgriGov Management System. All rights reserved.</p>
+<div class="mt-4 flex justify-center gap-6 text-xs font-medium text-slate-400">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">System Status</a>
+</div>
+</footer>
+</main>
+</div>
+</body></html>
