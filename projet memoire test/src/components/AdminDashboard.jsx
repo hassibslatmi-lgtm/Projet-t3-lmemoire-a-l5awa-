@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ValidateAccountsModal from './ValidateAccountsModal';
 import BlockAccountsModal from './BlockAccountsModal';
 import AdminManageCategories from './AdminManageCategories';
+import AdminManagePrices from './AdminManagePrices';
 
 export default function AdminDashboard() {
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
@@ -31,6 +32,10 @@ export default function AdminDashboard() {
             <a onClick={() => setActiveTab('categories')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'categories' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
               <span className="material-symbols-outlined" style={activeTab === 'categories' ? { fontVariationSettings: "'FILL' 1" } : {}}>category</span>
               <span className="font-medium">Categories</span>
+            </a>
+            <a onClick={() => setActiveTab('prices')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'prices' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
+              <span className="material-symbols-outlined" style={activeTab === 'prices' ? { fontVariationSettings: "'FILL' 1" } : {}}>swap_horiz</span>
+              <span className="font-medium">Transactions & Prices</span>
             </a>
             <div className="pt-4 border-t border-outline-variant/30 mt-4">
               <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
@@ -196,9 +201,11 @@ export default function AdminDashboard() {
               </div>
             </section>
           </div>
-          ) : (
+          ) : activeTab === 'categories' ? (
             <AdminManageCategories />
-          )}
+          ) : activeTab === 'prices' ? (
+            <AdminManagePrices />
+          ) : null}
 
           {/* Footer */}
           <footer className="p-8 border-t border-outline-variant/30 text-center bg-surface mt-auto">
