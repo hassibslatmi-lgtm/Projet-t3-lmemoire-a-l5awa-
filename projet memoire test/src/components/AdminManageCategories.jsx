@@ -25,9 +25,7 @@ export default function AdminManageCategories() {
   };
 
   const handleDelete = (id) => {
-    if(window.confirm('Are you sure you want to delete this category?')) {
-      setCategories(categories.filter(cat => cat.id !== id));
-    }
+    setCategories(categories.filter(cat => cat.id !== id));
   };
 
   const handleSaveCategory = (categoryData) => {
