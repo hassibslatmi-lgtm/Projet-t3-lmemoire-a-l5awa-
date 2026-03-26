@@ -67,7 +67,6 @@ export default function AdminManageCategories() {
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Category</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Product Count</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Created Date</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
               </tr>
             </thead>
@@ -92,19 +91,6 @@ export default function AdminManageCategories() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-on-surface-variant">{cat.date}</td>
-                  <td className="px-6 py-4">
-                    {cat.status === 'Active' ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100/50 text-green-800 border border-green-200">
-                        <span className="size-1.5 rounded-full bg-green-600"></span>
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                        <span className="size-1.5 rounded-full bg-slate-400"></span>
-                        Inactive
-                      </span>
-                    )}
-                  </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => handleEdit(cat)} className="p-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-primary/5" title="Edit">
@@ -120,7 +106,7 @@ export default function AdminManageCategories() {
               
               {categories.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-on-surface-variant">
+                  <td colSpan="4" className="px-6 py-12 text-center text-on-surface-variant">
                     No categories found. Click 'Add New Category' to create one.
                   </td>
                 </tr>
