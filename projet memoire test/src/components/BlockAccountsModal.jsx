@@ -13,9 +13,10 @@ export default function BlockAccountsModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleBlock = (id) => {
+  const handleToggleBlock = (id, currentStatus) => {
     // Simulate updating the backend and locally patching the status
-    setAccounts(accounts.map(acc => acc.id === id ? { ...acc, status: 'Blocked' } : acc));
+    const newStatus = currentStatus === 'Active' ? 'Blocked' : 'Active';
+    setAccounts(accounts.map(acc => acc.id === id ? { ...acc, status: newStatus } : acc));
   };
 
   return (
@@ -61,14 +62,14 @@ export default function BlockAccountsModal({ isOpen, onClose }) {
                 </div>
                 
                 {acc.status === 'Active' ? (
-                  <button onClick={() => handleBlock(acc.id)} className="px-5 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold rounded-lg transition-all text-sm flex items-center gap-2 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                  <button onClick={() => handleToggleBlock(acc.id, acc.status)} className="px-5 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold rounded-lg transition-all text-sm flex items-center gap-2 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]">
                     <span className="material-symbols-outlined text-[18px]">block</span>
                     Block User
                   </button>
                 ) : (
-                  <button className="px-5 py-2.5 bg-surface-container text-on-surface-variant/70 font-bold rounded-lg cursor-not-allowed border border-outline-variant/30 text-sm flex items-center gap-2" disabled>
-                    <span className="material-symbols-outlined text-[18px]">lock</span>
-                    Restricted
+                  <button onClick={() => handleToggleBlock(acc.id, acc.status)} className="px-5 py-2.5 bg-white border border-green-200 hover:bg-green-50 text-green-700 font-bold rounded-lg transition-all text-sm flex items-center gap-2 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                    <span className="material-symbols-outlined text-[18px]">lock_open</span>
+                    Deblock
                   </button>
                 )}
               </div>
