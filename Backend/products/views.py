@@ -1,19 +1,30 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from .models import Category, Product
-from .serializers import CategorySerializer, ProductSerializer
+from rest_framework.permissions import IsAdminUser, AllowAny
+from .models import Category
+from .serializers import CategorySerializer
 
-# جلب الأصناف (للفلاح والمشتري)
+# جلب قائمة كل الأصناف (للجميع)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_categories(request):
-    categories = Category.objects.all()
+    categories = Category.objects.all().order_by('-created_at')
     serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
 
-# إضافة صنف (Admin Only)
+# جلب تفاصيل صنف واحد بالـ ID
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_category(request, pk):
+    try:
+        category = Category.objects.get(pk=pk)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+    except Category.DoesNotExist:
+        return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
+
+# إضافة صنف جديد (Admin Only)
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def add_category(request):
@@ -23,15 +34,28 @@ def add_category(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# إضافة منتج (Farmer Only)
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_product(request):
-    if request.user.role != 'farmer':
-        return Response({'error': 'فقط الفلاحين يمكنهم إضافة منتجات'}, status=403)
+# تعديل صنف (Admin Only)
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAdminUser])
+def update_category(request, pk):
+    try:
+        category = Category.objects.get(pk=pk)
+    except Category.DoesNotExist:
+        return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
     
-    serializer = ProductSerializer(data=request.data)
+    serializer = CategorySerializer(category, data=request.data, partial=True)
     if serializer.is_valid():
-        serializer.save(farmer=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# حذف صنف (Admin Only)
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_category(request, pk):
+    try:
+        category = Category.objects.get(pk=pk)
+        category.delete()
+        return Response({'message': 'تم الحذف بنجاح'}, status=status.HTTP_204_NO_CONTENT)
+    except Category.DoesNotExist:
+        return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
