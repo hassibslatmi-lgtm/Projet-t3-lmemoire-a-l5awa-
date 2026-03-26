@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ValidateAccountsModal from './ValidateAccountsModal';
 import BlockAccountsModal from './BlockAccountsModal';
+import AdminManageCategories from './AdminManageCategories';
 
 export default function AdminDashboard() {
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('accounts');
   return (
     <div className="bg-surface-container-lowest text-on-surface antialiased font-sans min-h-screen">
       <div className="flex min-h-screen relative">
@@ -22,9 +24,13 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined">dashboard</span>
               <span className="font-medium">Dashboard</span>
             </a>
-            <a className="flex items-center gap-3 px-4 py-3 bg-primary text-on-primary rounded-lg shadow-md shadow-primary/20 cursor-pointer">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
+            <a onClick={() => setActiveTab('accounts')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'accounts' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
+              <span className="material-symbols-outlined" style={activeTab === 'accounts' ? { fontVariationSettings: "'FILL' 1" } : {}}>group</span>
               <span className="font-medium">Accounts</span>
+            </a>
+            <a onClick={() => setActiveTab('categories')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'categories' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
+              <span className="material-symbols-outlined" style={activeTab === 'categories' ? { fontVariationSettings: "'FILL' 1" } : {}}>category</span>
+              <span className="font-medium">Categories</span>
             </a>
             <div className="pt-4 border-t border-outline-variant/30 mt-4">
               <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
@@ -71,6 +77,7 @@ export default function AdminDashboard() {
           </header>
 
           {/* Dashboard Content */}
+          {activeTab === 'accounts' ? (
           <div className="p-4 md:p-8 space-y-8 flex-1">
             
             <div>
@@ -189,6 +196,9 @@ export default function AdminDashboard() {
               </div>
             </section>
           </div>
+          ) : (
+            <AdminManageCategories />
+          )}
 
           {/* Footer */}
           <footer className="p-8 border-t border-outline-variant/30 text-center bg-surface mt-auto">
