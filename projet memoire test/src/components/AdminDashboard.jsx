@@ -1,14 +1,30 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import ValidateAccountsModal from './ValidateAccountsModal';
 import BlockAccountsModal from './BlockAccountsModal';
 import AdminManageCategories from './AdminManageCategories';
 import AdminManagePrices from './AdminManagePrices';
+import AdminComplaints from './AdminComplaints';
+import AdminDashboardHome from './AdminDashboardHome';
+import { getAdminStats, clearAuth, getName } from '../services/api';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('accounts');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [stats, setStats] = useState({ total_users: '—', pending_accounts: '—', blocked_accounts: '—' });
+  const adminName = getName() || 'Admin';
+  const adminInitials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  useEffect(() => {
+    getAdminStats().then(data => setStats(data)).catch(() => {});
+  }, [isValidateModalOpen, isBlockModalOpen]);
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate('/login');
+  };
   return (
     <div className="bg-surface-container-lowest text-on-surface antialiased font-sans min-h-screen">
       <div className="flex min-h-screen relative">
@@ -21,8 +37,8 @@ export default function AdminDashboard() {
             <h2 className="text-primary text-xl font-bold tracking-tight">AgriGov</h2>
           </div>
           <nav className="flex-1 px-4 space-y-2 mt-4">
-            <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
-              <span className="material-symbols-outlined">dashboard</span>
+            <a onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'dashboard' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
+              <span className="material-symbols-outlined" style={activeTab === 'dashboard' ? { fontVariationSettings: "'FILL' 1" } : {}}>dashboard</span>
               <span className="font-medium">Dashboard</span>
             </a>
             <a onClick={() => setActiveTab('accounts')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'accounts' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
@@ -37,6 +53,10 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined" style={activeTab === 'prices' ? { fontVariationSettings: "'FILL' 1" } : {}}>swap_horiz</span>
               <span className="font-medium">Transactions & Prices</span>
             </a>
+            <a onClick={() => setActiveTab('complaints')} className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${activeTab === 'complaints' ? 'bg-primary text-on-primary shadow-md shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-high transition-colors'}`}>
+              <span className="material-symbols-outlined" style={activeTab === 'complaints' ? { fontVariationSettings: "'FILL' 1" } : {}}>report_problem</span>
+              <span className="font-medium">Complaints</span>
+            </a>
             <div className="pt-4 border-t border-outline-variant/30 mt-4">
               <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer">
                 <span className="material-symbols-outlined">settings</span>
@@ -46,9 +66,9 @@ export default function AdminDashboard() {
           </nav>
           <div className="p-4 border-t border-outline-variant/30">
             <div className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">JD</div>
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">{adminInitials}</div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold truncate">John Doe</p>
+                <p className="text-sm font-bold truncate">{adminName}</p>
                 <p className="text-xs text-on-surface-variant truncate">Ministry Admin</p>
               </div>
             </div>
@@ -74,10 +94,10 @@ export default function AdminDashboard() {
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-surface"></span>
               </button>
               <div className="h-8 w-px bg-outline-variant/30 mx-2 hidden sm:block"></div>
-              <Link to="/login" className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors text-sm font-semibold">
+              <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
                 <span className="material-symbols-outlined text-lg">logout</span>
                 <span className="hidden sm:inline">Logout</span>
-              </Link>
+              </button>
             </div>
           </header>
 
@@ -98,7 +118,7 @@ export default function AdminDashboard() {
                   <span className="text-xs font-bold text-green-600">+12%</span>
                 </div>
                 <h3 className="text-on-surface-variant text-sm font-medium uppercase tracking-wide">Total Users</h3>
-                <p className="text-3xl font-bold mt-1 text-on-surface">1,250</p>
+                <p className="text-3xl font-bold mt-1 text-on-surface">{stats.total_users}</p>
               </div>
               <div className="bg-surface p-6 rounded-xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-4">
@@ -106,7 +126,7 @@ export default function AdminDashboard() {
                   <span className="text-xs font-bold text-amber-600">Pending</span>
                 </div>
                 <h3 className="text-on-surface-variant text-sm font-medium uppercase tracking-wide">Pending Accounts</h3>
-                <p className="text-3xl font-bold mt-1 text-on-surface">42</p>
+                <p className="text-3xl font-bold mt-1 text-on-surface">{stats.pending_accounts}</p>
               </div>
               <div className="bg-surface p-6 rounded-xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow border-l-4 border-red-500">
                 <div className="flex items-center justify-between mb-4">
@@ -114,7 +134,7 @@ export default function AdminDashboard() {
                   <span className="text-xs font-bold text-red-600">Action Required</span>
                 </div>
                 <h3 className="text-on-surface-variant text-sm font-medium uppercase tracking-wide">Blocked Accounts</h3>
-                <p className="text-3xl font-bold mt-1 text-on-surface">14</p>
+                <p className="text-3xl font-bold mt-1 text-on-surface">{stats.blocked_accounts}</p>
               </div>
             </div>
 
@@ -205,6 +225,10 @@ export default function AdminDashboard() {
             <AdminManageCategories />
           ) : activeTab === 'prices' ? (
             <AdminManagePrices />
+          ) : activeTab === 'complaints' ? (
+            <AdminComplaints />
+          ) : activeTab === 'dashboard' ? (
+            <AdminDashboardHome onNavigate={setActiveTab} />
           ) : null}
 
           {/* Footer */}

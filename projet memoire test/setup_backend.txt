@@ -1,0 +1,44 @@
+# Final Steps to Start the Backend
+
+Follow these steps exactly to get the backend running:
+
+1.  **Open MySQL Workbench** (or your MySQL command line) and run:
+    ```sql
+    CREATE DATABASE agrigov_db;
+    ```
+    *(If it already exists, skip this step)*
+
+2.  **Open a NEW Terminal** in this folder.
+
+3.  **Move to the Backend folder**:
+    ```powershell
+    cd "C:\Users\Informatics\Desktop\projet memoire\resources\Backend"
+    ```
+
+4.  **Create the tables**:
+    ```powershell
+    python manage.py migrate
+    ```
+
+5.  **Start the server**:
+    ```powershell
+    python manage.py runserver
+    ```
+
+### Testing Signup for Buyer:
+Use these details on the `/signup` page in your browser:
+- **Role**: Buyer
+- **Full Name**: Ahmed Benmoussa
+- **Username**: ahmed_buyer
+- **Email**: ahmed.buyer@agrigov.dz
+- **Phone**: +213 550 123 456
+- **Gender**: Male
+- **Password**: Test@1234
+- **Address**: 12 Rue des Oliviers, Alger
+- **Commercial Register**: CR-2026-ABM
+
+---
+### Admin Credentials (to approve the account):
+*Check your `users` table or ask your friend for the admin login*
+- Go to `/admin` section on the dashboard after logging in as admin.
+- Go to `Accounts` -> `Validate Accounts` and approve Ahmed.
