@@ -10,7 +10,8 @@ from .serializers import CategorySerializer
 @permission_classes([AllowAny])
 def list_categories(request):
     categories = Category.objects.all().order_by('-created_at')
-    serializer = CategorySerializer(categories, many=True)
+    # التعديل هنا: إضافة context={'request': request}
+    serializer = CategorySerializer(categories, many=True, context={'request': request})
     return Response(serializer.data)
 
 # جلب تفاصيل صنف واحد بالـ ID
@@ -19,7 +20,8 @@ def list_categories(request):
 def get_category(request, pk):
     try:
         category = Category.objects.get(pk=pk)
-        serializer = CategorySerializer(category)
+        # التعديل هنا: إضافة context={'request': request}
+        serializer = CategorySerializer(category, context={'request': request})
         return Response(serializer.data)
     except Category.DoesNotExist:
         return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
@@ -28,7 +30,8 @@ def get_category(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def add_category(request):
-    serializer = CategorySerializer(data=request.data)
+    # نمرر الـ context هنا أيضاً ليرجع لنا الرابط الكامل بعد الحفظ مباشرة
+    serializer = CategorySerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -43,7 +46,8 @@ def update_category(request, pk):
     except Category.DoesNotExist:
         return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
     
-    serializer = CategorySerializer(category, data=request.data, partial=True)
+    # إضافة context={'request': request}
+    serializer = CategorySerializer(category, data=request.data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
