@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+#urls for product app
 urlpatterns = [
     path('categories/', views.list_categories, name='list-categories'),
     path('categories/add/', views.add_category, name='add-category'),
