@@ -26,7 +26,7 @@ def signup(request):
         return Response({"message": "تم التسجيل بنجاح. حسابك قيد المراجعة."}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 2. دخول المستخدم (Login) مع التحقق من الحظر والحالة
+# 2. دخول المستخدم (Login) - النسخة المعدلة لربط الـ Admin Dashboard
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_api(request):
@@ -42,7 +42,8 @@ def login_api(request):
         if not user_obj.check_password(password):
             return Response({'error': 'كلمة السر خاطئة'}, status=400)
 
-        if not user_obj.is_staff:
+        # التحقق من حالة الحساب (فقط للمستخدمين العاديين، الأدمن يدخل دائماً)
+        if not user_obj.is_staff and not user_obj.is_superuser:
             if user_obj.status == 'pending':
                 return Response({'error': 'حسابك مازال في مرحلة المراجعة.'}, status=403)
             if user_obj.status == 'rejected':
@@ -50,12 +51,17 @@ def login_api(request):
             if user_obj.status == 'blocked':
                 return Response({'error': 'حسابك محظور من طرف الإدارة. يرجى التواصل معنا.'}, status=403)
 
+        # توليد التوكن
         token, _ = Token.objects.get_or_create(user=user_obj)
+        
+        # التعديل الجوهري هنا: إرسال is_superuser و is_staff ليفهم الـ React صلاحيات الأدمن
         return Response({
             'token': token.key, 
             'role': user_obj.role, 
             'full_name': user_obj.full_name,
-            'username': user_obj.username
+            'username': user_obj.username,
+            'is_superuser': user_obj.is_superuser,
+            'is_staff': user_obj.is_staff
         }, status=200)
 
     except User.DoesNotExist:
@@ -157,4 +163,3 @@ def get_admin_stats(request):
         "rejected_accounts": User.objects.filter(status='rejected', is_staff=False).count(),
     }
     return Response(data, status=200)
-    

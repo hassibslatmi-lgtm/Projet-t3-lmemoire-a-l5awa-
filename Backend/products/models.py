@@ -18,6 +18,18 @@ class Product(models.Model):
     quantity = models.FloatField() 
     image = models.ImageField(upload_to='products/')
     created_at = models.DateTimeField(auto_now_add=True)
+# models.py
+class OfficialPrice(models.Model):
+    product_name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.ImageField(upload_to='official_prices/', null=True, blank=True)
+    date_set = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_set']
+
+    def __str__(self):
+        return f"{self.product_name} - {self.price}"
 
     def __str__(self):
         return f"{self.name} - {self.farmer.username}"
