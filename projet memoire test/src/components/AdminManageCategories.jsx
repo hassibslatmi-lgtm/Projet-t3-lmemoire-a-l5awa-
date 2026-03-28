@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddCategoryModal from './AddCategoryModal';
-
-const INITIAL_MOCK_CATEGORIES = [
-  { id: 1, name: 'Fruits', desc: 'Fresh seasonal orchard produce', count: 142, date: 'Oct 12, 2023', status: 'Active', img: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=100&q=80' },
-  { id: 2, name: 'Vegetables', desc: 'Organic farm-to-table greens', count: 89, date: 'Oct 14, 2023', status: 'Active', img: 'https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?w=100&q=80' },
-  { id: 3, name: 'Grains', desc: 'Essential cereals and legumes', count: 56, date: 'Nov 02, 2023', status: 'Active', img: 'https://images.unsplash.com/photo-1586201375761-83865001e8ac?w=100&q=80' },
-  { id: 4, name: 'Dairy', desc: 'Milk, cheese, and farm dairy', count: 34, date: 'Nov 15, 2023', status: 'Inactive', img: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=100&q=80' },
-  { id: 5, name: 'Organic', desc: 'Certified pesticide-free goods', count: 120, date: 'Dec 01, 2023', status: 'Active', img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=100&q=80' }
-];
+import { getCategories, deleteCategory, addCategory, updateCategory } from '../services/api';
 
 export default function AdminManageCategories() {
-  const [categories, setCategories] = useState(INITIAL_MOCK_CATEGORIES);
+  const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const res = await getCategories();
+      setCategories(Array.isArray(res) ? res : []);
+    } catch (err) {
+      console.error("Error fetching categories", err);
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     setEditingCategory(null);
@@ -20,113 +31,114 @@ export default function AdminManageCategories() {
   };
 
   const handleEdit = (cat) => {
-    setEditingCategory(cat);
+    setEditingCategory({
+      id: cat.id,
+      name: cat.name,
+      desc: cat.description,
+      img: cat.image,
+    });
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    setCategories(categories.filter(cat => cat.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this category?")) {
+      try {
+        await deleteCategory(id);
+        setCategories(prev => prev.filter(c => c.id !== id));
+      } catch (err) {
+        alert("Delete failed.");
+      }
+    }
   };
 
-  const handleSaveCategory = (categoryData) => {
-    if (editingCategory) {
-      // Update existing
-      setCategories(categories.map(cat => cat.id === categoryData.id ? categoryData : cat));
-    } else {
-      // Create new
-      setCategories([categoryData, ...categories]);
+  const handleSaveCategory = async (categoryData) => {
+    const formData = new FormData();
+    formData.append('name', categoryData.name);
+    formData.append('description', categoryData.desc);
+    
+    // التعديل: ربط الملف بـ 'image' ليتوافق مع Backend
+    if (categoryData.imageFile) {
+      formData.append('image', categoryData.imageFile);
+    }
+
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, formData);
+      } else {
+        await addCategory(formData);
+      }
+      fetchCategories();
+      setIsModalOpen(false);
+      setEditingCategory(null);
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Error saving data. Check if category name exists.");
     }
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-surface-container-lowest">
-      
-      {/* Page Title & CTA */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/30">
+    <div className="flex-1 p-4 md:p-8 bg-gray-50 min-h-screen">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 gap-4">
         <div className="flex items-center gap-4">
-          <div className="size-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+          <div className="w-12 h-12 bg-green-100 text-green-700 rounded-xl flex items-center justify-center">
             <span className="material-symbols-outlined text-3xl">category</span>
           </div>
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-on-surface">Manage Categories</h2>
-            <p className="text-on-surface-variant text-sm mt-1">Organize and structure your agricultural product catalog.</p>
+            <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
+            <p className="text-gray-500 text-sm">Manage product catalog structure.</p>
           </div>
         </div>
-        <button onClick={handleAdd} className="bg-primary text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
-          <span className="material-symbols-outlined">add_circle</span>
-          Add New Category
+        <button onClick={handleAdd} className="bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-green-800 transition-all cursor-pointer">
+          <span className="material-symbols-outlined">add</span> Add New
         </button>
       </div>
 
-      {/* Category Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-surface-container-lowest border-b border-outline-variant/30">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Category</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Product Count</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Created Date</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">Actions</th>
+              <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-xs uppercase font-bold">
+                <th className="px-6 py-4">Category</th>
+                <th className="px-6 py-4">Created Date</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/20">
-              {categories.map(cat => (
-                <tr key={cat.id} className="hover:bg-surface-container-lowest/50 transition-colors">
+            <tbody className="divide-y divide-gray-100">
+              {categories?.map(cat => (
+                <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div 
-                        className="size-12 rounded-lg bg-surface-container-high flex-shrink-0 bg-cover bg-center overflow-hidden border border-outline-variant/30 shadow-sm"
-                        style={{ backgroundImage: `url('${cat.img}')` }}
-                      ></div>
+                        className="w-12 h-12 rounded-lg bg-gray-200 bg-cover bg-center border border-gray-200 flex-shrink-0 flex items-center justify-center overflow-hidden" 
+                        style={{ backgroundImage: cat.image ? `url('${cat.image}')` : 'none' }}
+                      >
+                        {!cat.image && <span className="text-[10px] text-gray-400">No Img</span>}
+                      </div>
                       <div>
-                        <p className="font-bold text-on-surface">{cat.name}</p>
-                        <p className="text-xs text-on-surface-variant">{cat.desc}</p>
+                        <p className="font-bold text-gray-800">{cat.name}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{cat.description}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-1 bg-surface-container-lowest border border-outline-variant/30 rounded-lg text-on-surface">
-                        {cat.count} <span className="text-xs font-normal text-on-surface-variant">items</span>
-                    </span>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {cat.created_at ? new Date(cat.created_at).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-on-surface-variant">{cat.date}</td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => handleEdit(cat)} className="p-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-primary/5" title="Edit">
-                        <span className="material-symbols-outlined text-xl">edit</span>
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => handleEdit(cat)} className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-all cursor-pointer">
+                        <span className="material-symbols-outlined">edit</span>
                       </button>
-                      <button onClick={() => handleDelete(cat.id)} className="p-2 text-on-surface-variant hover:text-red-500 transition-colors cursor-pointer rounded-full hover:bg-red-50" title="Delete">
-                        <span className="material-symbols-outlined text-xl">delete</span>
+                      <button onClick={() => handleDelete(cat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all cursor-pointer">
+                        <span className="material-symbols-outlined">delete</span>
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              
-              {categories.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-on-surface-variant">
-                    No categories found. Click 'Add New Category' to create one.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
-        </div>
-        
-        {/* Pagination */ }
-        <div className="bg-surface-container-lowest px-6 py-4 border-t border-outline-variant/30 flex items-center justify-between">
-          <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Showing {categories.length > 0 ? 1 : 0} to {categories.length} of {categories.length} results</p>
-          <div className="flex gap-1">
-            <button className="size-8 flex items-center justify-center rounded-lg border border-outline-variant/50 text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-lg">chevron_left</span>
-            </button>
-            <button className="size-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold text-xs shadow-sm">1</button>
-            <button className="size-8 flex items-center justify-center rounded-lg border border-outline-variant/50 text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-lg">chevron_right</span>
-            </button>
-          </div>
+          {!loading && categories.length === 0 && <div className="p-20 text-center text-gray-400">No categories found.</div>}
+          {loading && <div className="p-10 text-center text-green-700 animate-pulse">Loading...</div>}
         </div>
       </div>
 

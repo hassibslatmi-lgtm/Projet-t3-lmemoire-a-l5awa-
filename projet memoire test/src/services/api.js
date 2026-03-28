@@ -48,9 +48,9 @@ export const signup = (payload) =>
   });
 
 // ── Admin — Accounts ──────────────────────────────────────────────────────────
-export const getPendingUsers   = ()        => request('/users/admin/pending/');
-export const getValidatedUsers = ()        => request('/users/admin/validated/');
-export const getAdminStats     = ()        => request('/users/admin/stats/');
+export const getPendingUsers   = ()         => request('/users/admin/pending/');
+export const getValidatedUsers = ()         => request('/users/admin/validated/');
+export const getAdminStats     = ()         => request('/users/admin/stats/');
 export const manageUser        = (id, action, reason) =>
   request(`/users/admin/manage/${id}/`, {
     method: 'POST',
@@ -58,3 +58,45 @@ export const manageUser        = (id, action, reason) =>
   });
 export const toggleBlock = (id) =>
   request(`/users/admin/toggle-block/${id}/`, { method: 'POST', body: JSON.stringify({}) });
+
+// ── Admin — Categories (Added & Fixed) ────────────────────────────────────────
+
+// جلب كل الأصناف
+export const getCategories = () => request('/api/products/categories/');
+
+// إضافة صنف جديد (بما أنه توجد صورة، نرسل FormData مباشرة)
+export const addCategory = (formData) => {
+  const token = getToken();
+  return fetch(`${BASE_URL}/api/products/categories/add/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Token ${token}`,
+      // لا نضع Content-Type هنا، المتصفح سيتكفل بها مع الصور تلقائياً
+    },
+    body: formData,
+  }).then(async res => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  });
+};
+
+// تعديل صنف
+export const updateCategory = (id, formData) => {
+  const token = getToken();
+  return fetch(`${BASE_URL}/api/products/categories/${id}/update/`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Token ${token}`,
+    },
+    body: formData,
+  }).then(async res => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  });
+};
+
+// حذف صنف
+export const deleteCategory = (id) => 
+  request(`/api/products/categories/${id}/delete/`, { method: 'DELETE' });
