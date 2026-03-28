@@ -90,13 +90,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django REST Framework Configuration
+# settings.py
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication', # هذا اللي رانا نخدمو بيه في React
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny', # غيرها من IsAuthenticated لـ AllowAny
     ],
 }
 

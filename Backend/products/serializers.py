@@ -1,29 +1,20 @@
 from rest_framework import serializers
-from .models import Category, Product
+from .models import Category, Product, OfficialPrice
 
 class CategorySerializer(serializers.ModelSerializer):
-    # نستخدم SerializerMethodField باش نتحكمو في رابط الصورة
-    image = serializers.SerializerMethodField()
+    # نرجعوه ImageField عادي باش يقبل الـ Upload
+    # وفي نفس الوقت Django REST راح يرجع الرابط الكامل وحده
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'image', 'created_at']
 
-    def get_image(self, obj):
-        request = self.context.get('request')
-        if obj.image:
-            # إذا كان كاين request، يرجع الرابط الكامل (http://...)
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            # إذا ماكانش (مثلاً في الـ Terminal)، يرجع المسار العادي
-            return obj.image.url
-        return None
-
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source='category.name')
     farmer_name = serializers.ReadOnlyField(source='farmer.full_name')
-    # نفس الشيء بالنسبة للـ Product
-    image = serializers.SerializerMethodField()
+    # نفس الشيء للمنتجات
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Product
@@ -32,11 +23,10 @@ class ProductSerializer(serializers.ModelSerializer):
             'name', 'description', 'quantity', 'image', 'created_at'
         ]
         read_only_fields = ['farmer']
+# serializers.py
+class OfficialPriceSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, allow_null=True)
 
-    def get_image(self, obj):
-        request = self.context.get('request')
-        if obj.image:
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
+    class Meta:
+        model = OfficialPrice
+        fields = ['id', 'product_name', 'price', 'image', 'date_set']
