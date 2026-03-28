@@ -113,4 +113,4 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
       </div>
     </div>
   );
-}
+}  

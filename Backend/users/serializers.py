@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import User, Farmer, Buyer, Transporter
 
-# 1. نزيدو هاد الـ Serializers الصغار باش نبعثو البيانات المنظمة
 class FarmerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Farmer
@@ -18,37 +17,47 @@ class TransporterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
-    # 2. نربطو الـ Roles بالـ User (هذا هو الـ Link الحقيقي للـ Front)
     farmer = FarmerSerializer(read_only=True)
     buyer = BuyerSerializer(read_only=True)
     transporter = TransporterSerializer(read_only=True)
-    
     extra_data = serializers.JSONField(write_only=True, required=False)
+    
+    # حقل الصورة الافتراضية
+    profile_photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        # 3. نزيدو الحقول الجديدة في الـ fields
         fields = [
             'id', 'username', 'password', 'email', 'full_name', 'sex', 
             'role', 'phone', 'address', 'status', 'created_at',
-            'farmer', 'buyer', 'transporter', 'extra_data'
+            'farmer', 'buyer', 'transporter', 'extra_data', 'profile_photo', 'profile_photo_url'
         ]
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True}
         }
 
+    def get_profile_photo_url(self, obj):
+        request = self.context.get('request')
+        if obj.profile_photo:
+            return request.build_absolute_uri(obj.profile_photo.url)
+        # صورة افتراضية احترافية تعتمد على اسم المستخدم
+        name = obj.full_name or obj.username
+        return f"https://ui-avatars.com/api/?name={name}&background=random&size=128"
+
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("هذا البريد الإلكتروني مسجل مسبقاً في النظام.")
+        # للتأكد أن الإيميل لا يتكرر إلا عند المستخدم الحالي (في حالة التعديل)
+        user_id = self.instance.id if self.instance else None
+        if User.objects.filter(email=value).exclude(id=user_id).exists():
+            raise serializers.ValidationError("هذا البريد الإلكتروني مسجل مسبقاً.")
         return value
 
     def create(self, validated_data):
         extra_data = validated_data.pop('extra_data', {})
-        password = validated_data.pop('password')
-        
+        password = validated_data.pop('password', None)
         user = User.objects.create(**validated_data)
-        user.set_password(password)
+        if password:
+            user.set_password(password)
         user.save()
 
         role = validated_data.get('role')
@@ -68,5 +77,14 @@ class UserSerializer(serializers.ModelSerializer):
         except Exception as e:
             user.delete() 
             raise serializers.ValidationError({"error": f"بيانات الدور غير صحيحة: {str(e)}"})
-        
         return user
+
+    def update(self, instance, validated_data):
+        # تعديل البيانات الأساسية (Profile Update)
+        for attr, value in validated_data.items():
+            if attr == 'password':
+                instance.set_password(value)
+            else:
+                setattr(instance, attr, value)
+        instance.save()
+        return instance
