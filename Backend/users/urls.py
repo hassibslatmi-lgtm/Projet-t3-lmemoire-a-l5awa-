@@ -11,4 +11,5 @@ urlpatterns = [
     path('admin/manage/<int:user_id>/', views.admin_manage_user, name='manage-new-user'), #validate or reject new users
     path('admin/toggle-block/<int:user_id>/', views.toggle_user_block, name='toggle-block'),#blocked or unblock active usres
     path('admin/stats/', views.get_admin_stats, name='admin-stats'),#statistics for admin dashbord Account
+    path('profile/manage/', views.manage_profile, name='manage_profile'), #manage Profile
 ]

@@ -27,7 +27,13 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True) 
     rejection_reason = models.TextField(null=True, blank=True) 
     created_at = models.DateTimeField(auto_now_add=True)
-
+    profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+    @property
+    def get_photo_url(self):
+        if self.profile_photo and hasattr(self.profile_photo, 'url'):
+            return self.profile_photo.url
+        # رابط صورة افتراضية (تقدر تحط صورة في مجلد static)
+        return "/static/images/default-avatar.png"
     def __str__(self):
         return f"{self.full_name if self.full_name else self.username} ({self.role})"
 
@@ -53,3 +59,4 @@ class Transporter(models.Model):
     license_expiry_date = models.DateField(null=True, blank=True)
     vehicle_name = models.CharField(max_length=100)
     vehicle_year = models.IntegerField(null=True, blank=True)
+

@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import AdminDashboard from './components/AdminDashboard';
+import FarmerManageProfile from './components/FarmerManageProfile';
+import FarmerManageProducts from './components/FarmerManageProducts';
 
 function App() {
   return (
@@ -11,6 +13,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/farmer/profile" element={<FarmerManageProfile />} />
+        <Route path="/farmer/products" element={<FarmerManageProducts />} />
+        <Route path="/farmer" element={<Navigate to="/farmer/profile" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
