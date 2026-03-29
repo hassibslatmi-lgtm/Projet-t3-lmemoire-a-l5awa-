@@ -22,20 +22,42 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} - {self.farmer.username}"
 
-# --- التعديل هنا في OfficialPrice ---
+
+# ... (Category and Product models stay the same)
+
 class OfficialPrice(models.Model):
     product_name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='official_prices/', null=True, blank=True)
-    
-    # auto_now_add: يسجل تاريخ أول مرة درت فيها Add فقط
     created_at = models.DateTimeField(auto_now_add=True) 
-    
-    # auto_now: يتحدث أوتوماتيكياً في كل مرة تدير Update (save)
     date_set = models.DateTimeField(auto_now=True) 
 
     class Meta:
-        ordering = ['-date_set'] # باش يخرج الجديد (المحدث) هو الأول
+        ordering = ['-date_set']
 
     def __str__(self):
-        return f"{self.product_name} - {self.price}"
+        return f"{self.product_name} - {self.price} DA"
+
+    # دالة سحرية: في كل مرة نحفظ (Save) السعر، يسجل نسخة في التاريخ تلقائياً
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        # نحفظ السعر الحالي أولاً
+        super().save(*args, **kwargs)
+        
+        # بعد الحفظ، ننشئ سجلاً في تاريخ الأسعار
+        PriceHistory.objects.create(
+            official_price=self,
+            price=self.price
+        )
+
+class PriceHistory(models.Model):
+    # ربط التاريخ بموديل OfficialPrice
+    official_price = models.ForeignKey(OfficialPrice, related_name='history', on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-changed_at'] # الجديد يظهر فوق في الـ Timeline
+
+    def __str__(self):
+        return f"{self.official_price.product_name}: {self.price} at {self.changed_at}"

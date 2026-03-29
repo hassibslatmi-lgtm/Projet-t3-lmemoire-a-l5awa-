@@ -1,16 +1,20 @@
 from rest_framework import serializers
-from .models import Category, Product, OfficialPrice
+from .models import Category, Product, OfficialPrice, PriceHistory
 
 class CategorySerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=False, allow_null=True)
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'image', 'created_at']
-
+class PriceHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PriceHistory
+        fields = ['price', 'changed_at']
 class OfficialPriceSerializer(serializers.ModelSerializer):
+    history = PriceHistorySerializer(many=True, read_only=True)
     class Meta:
         model = OfficialPrice
-        fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at']
+        fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at', 'history']
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source='category.name')
@@ -31,4 +35,4 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_official_price(self, obj):
         # البحث عن السعر بناءً على اسم المنتج
         price_entry = OfficialPrice.objects.filter(product_name=obj.name).first()
-        return price_entry.price if price_entry else "N/A"  
+        return price_entry.price if price_entry else "N/A" 

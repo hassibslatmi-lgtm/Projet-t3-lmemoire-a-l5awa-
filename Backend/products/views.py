@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from .models import Category, OfficialPrice, Product
+from .models import Category, OfficialPrice, Product, PriceHistory  # أضفنا PriceHistory هنا
 from .serializers import CategorySerializer, OfficialPriceSerializer, ProductSerializer
 
 # --- Category Views ---
@@ -58,11 +58,13 @@ def delete_category(request, pk):
         return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# --- Official Price Views ---
+# --- Official Price Views (Modified for Price History) ---
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_official_prices(request):
-    prices = OfficialPrice.objects.all().order_by('-id')
+    # ترتيب حسب الأحدث
+    prices = OfficialPrice.objects.all().order_by('-date_set') 
+    # الـ Serializer سيتكفل بجلب الـ history تلقائياً
     serializer = OfficialPriceSerializer(prices, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -72,6 +74,7 @@ def list_official_prices(request):
 def add_official_price(request):
     serializer = OfficialPriceSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
+        # دالة save() في الموديل ستنشئ أول سجل في التاريخ تلقائياً
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -81,12 +84,13 @@ def add_official_price(request):
 @permission_classes([IsAdminUser])
 def update_official_price(request, pk):
     try:
-        price = OfficialPrice.objects.get(pk=pk)
+        price_obj = OfficialPrice.objects.get(pk=pk)
     except OfficialPrice.DoesNotExist:
         return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = OfficialPriceSerializer(price, data=request.data, partial=True, context={'request': request})
+    serializer = OfficialPriceSerializer(price_obj, data=request.data, partial=True, context={'request': request})
     if serializer.is_valid():
+        # دالة save() في الموديل ستسجل السعر الجديد في التاريخ تلقائياً
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -101,9 +105,17 @@ def delete_official_price(request, pk):
         return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except OfficialPrice.DoesNotExist:
         return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_official_price(request, pk):
+    try:
+        price = OfficialPrice.objects.get(pk=pk)
+        serializer = OfficialPriceSerializer(price, context={'request': request})
+        return Response(serializer.data)
+    except OfficialPrice.DoesNotExist:
+        return Response({'error': 'السعر الرسمي غير موجود'}, status=status.HTTP_404_NOT_FOUND)
 
-
-# --- Farmer Product Views (Updated with Constraints) ---
+# --- Farmer Product Views ---
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -121,7 +133,6 @@ def add_product(request):
     if request.user.role != 'farmer':
         return Response({'error': 'Only farmers can add products'}, status=status.HTTP_403_FORBIDDEN)
     
-    # التعديل: التحقق إذا كان الاسم موجود في القائمة الرسمية
     product_name = request.data.get('name')
     if not OfficialPrice.objects.filter(product_name=product_name).exists():
         return Response({
@@ -165,3 +176,4 @@ def delete_product(request, pk):
         return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Product.DoesNotExist:
         return Response({'error': 'Product not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
+

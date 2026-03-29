@@ -1,3 +1,4 @@
+
 from django.urls import path
 from . import views
 
@@ -16,4 +17,5 @@ urlpatterns = [
     path('farmer/products/add/', views.add_product, name='add-farmer-product'),
     path('farmer/products/<int:pk>/update/', views.update_product, name='update-farmer-product'),
     path('farmer/products/<int:pk>/delete/', views.delete_product, name='delete-farmer-product'),
+    path('official-prices/<int:pk>/', views.get_official_price, name='get-official-price'),
 ]
