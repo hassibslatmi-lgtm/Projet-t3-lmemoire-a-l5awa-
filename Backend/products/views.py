@@ -1,47 +1,38 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, AllowAny
-from .models import Category
-from .serializers import CategorySerializer
-from .models import OfficialPrice
-from .serializers import OfficialPriceSerializer
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.permissions import IsAdminUser, AllowAny
-# جلب قائمة كل الأصناف (للجميع)
+from .models import Category, OfficialPrice, Product
+from .serializers import CategorySerializer, OfficialPriceSerializer, ProductSerializer
+
+# --- Category Views ---
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_categories(request):
     categories = Category.objects.all().order_by('-created_at')
-    # التعديل هنا: إضافة context={'request': request}
     serializer = CategorySerializer(categories, many=True, context={'request': request})
     return Response(serializer.data)
 
-# جلب تفاصيل صنف واحد بالـ ID
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_category(request, pk):
     try:
         category = Category.objects.get(pk=pk)
-        # التعديل هنا: إضافة context={'request': request}
         serializer = CategorySerializer(category, context={'request': request})
         return Response(serializer.data)
     except Category.DoesNotExist:
         return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
 
-# إضافة صنف جديد (Admin Only)
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def add_category(request):
-    # نمرر الـ context هنا أيضاً ليرجع لنا الرابط الكامل بعد الحفظ مباشرة
     serializer = CategorySerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# تعديل صنف (Admin Only)
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAdminUser])
 def update_category(request, pk):
@@ -50,14 +41,12 @@ def update_category(request, pk):
     except Category.DoesNotExist:
         return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
     
-    # إضافة context={'request': request}
     serializer = CategorySerializer(category, data=request.data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# حذف صنف (Admin Only)
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def delete_category(request, pk):
@@ -70,7 +59,6 @@ def delete_category(request, pk):
 
 
 # --- Official Price Views ---
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_official_prices(request):
@@ -79,7 +67,7 @@ def list_official_prices(request):
     return Response(serializer.data)
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication]) # نحّي SessionAuthentication هنا باش ما يطلبش CSRF
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAdminUser])
 def add_official_price(request):
     serializer = OfficialPriceSerializer(data=request.data, context={'request': request})
@@ -88,7 +76,6 @@ def add_official_price(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# أضف دالة التعديل لأنها كانت ناقصة عندك
 @api_view(['PUT', 'PATCH'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAdminUser])
@@ -114,3 +101,67 @@ def delete_official_price(request, pk):
         return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except OfficialPrice.DoesNotExist:
         return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# --- Farmer Product Views (Updated with Constraints) ---
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def list_farmer_products(request):
+    if request.user.role != 'farmer':
+        return Response({'error': 'Only farmers can view their products'}, status=status.HTTP_403_FORBIDDEN)
+    products = Product.objects.filter(farmer=request.user).order_by('-created_at')
+    serializer = ProductSerializer(products, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def add_product(request):
+    if request.user.role != 'farmer':
+        return Response({'error': 'Only farmers can add products'}, status=status.HTTP_403_FORBIDDEN)
+    
+    # التعديل: التحقق إذا كان الاسم موجود في القائمة الرسمية
+    product_name = request.data.get('name')
+    if not OfficialPrice.objects.filter(product_name=product_name).exists():
+        return Response({
+            'error': f'المنتج "{product_name}" غير متاح. يرجى الاختيار من القائمة الرسمية المحددة من طرف الإدارة.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = ProductSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        serializer.save(farmer=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT', 'PATCH'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def update_product(request, pk):
+    if request.user.role != 'farmer':
+        return Response({'error': 'Only farmers can update products'}, status=status.HTTP_403_FORBIDDEN)
+        
+    try:
+        product = Product.objects.get(pk=pk, farmer=request.user)
+    except Product.DoesNotExist:
+        return Response({'error': 'Product not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = ProductSerializer(product, data=request.data, partial=True, context={'request': request})
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_product(request, pk):
+    if request.user.role != 'farmer':
+        return Response({'error': 'Only farmers can delete products'}, status=status.HTTP_403_FORBIDDEN)
+        
+    try:
+        product = Product.objects.get(pk=pk, farmer=request.user)
+        product.delete()
+        return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    except Product.DoesNotExist:
+        return Response({'error': 'Product not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)

@@ -2,30 +2,33 @@ from rest_framework import serializers
 from .models import Category, Product, OfficialPrice
 
 class CategorySerializer(serializers.ModelSerializer):
-    # نرجعوه ImageField عادي باش يقبل الـ Upload
-    # وفي نفس الوقت Django REST راح يرجع الرابط الكامل وحده
     image = serializers.ImageField(required=False, allow_null=True)
-
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'image', 'created_at']
 
+class OfficialPriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfficialPrice
+        fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at']
+
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source='category.name')
     farmer_name = serializers.ReadOnlyField(source='farmer.full_name')
-    # نفس الشيء للمنتجات
     image = serializers.ImageField(required=False, allow_null=True)
+    
+    # حقل إضافي لجلب السعر الرسمي آلياً من جدول OfficialPrice
+    official_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
             'id', 'farmer', 'farmer_name', 'category', 'category_name', 
-            'name', 'description', 'quantity', 'image', 'created_at'
+            'name', 'description', 'quantity', 'image', 'official_price', 'created_at'
         ]
         read_only_fields = ['farmer']
-# serializers.py
-class OfficialPriceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OfficialPrice
-        # أضف created_at إذا حبيت تظهر تاريخ أول إضافة أيضاً
-        fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at']
+
+    def get_official_price(self, obj):
+        # البحث عن السعر بناءً على اسم المنتج
+        price_entry = OfficialPrice.objects.filter(product_name=obj.name).first()
+        return price_entry.price if price_entry else "N/A"  

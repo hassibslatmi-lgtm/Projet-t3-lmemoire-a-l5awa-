@@ -108,11 +108,11 @@ export const updateFarmerProfile = (formData) => {
 };
 
 // ── Farmer Products ───────────────────────────────────────────────────────────
-export const getFarmerProducts = () => request('/api/products/farmer/my-products/');
+export const getFarmerProducts = () => request('/api/products/farmer/products/');
 
 export const addFarmerProduct = (formData) => {
     const token = getToken();
-    return fetch(`${BASE_URL}/api/products/add/`, {
+    return fetch(`${BASE_URL}/api/products/farmer/products/add/`, {
       method: 'POST',
       headers: { 'Authorization': `Token ${token}` },
       body: formData,
@@ -137,4 +137,4 @@ export const updateFarmerProduct = (id, formData) => {
 };
 
 export const deleteFarmerProduct = (id) => 
-  request(`/api/products/${id}/delete/`, { method: 'DELETE' });
+  request(`/api/products/farmer/products/${id}/delete/`, { method: 'DELETE' });

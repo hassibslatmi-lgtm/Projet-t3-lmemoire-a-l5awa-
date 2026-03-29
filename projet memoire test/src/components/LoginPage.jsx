@@ -30,7 +30,7 @@ export default function LoginPage() {
       } 
       else if (data.role === 'farmer') {
         // التعديل الجديد: إذا كان فلاح يروح ديريكت للبروفايل باش تـتيسطي
-        navigate('/farmer/profile');
+        navigate('/farmer/products');
       } 
       else {
         // الأنواع الأخرى (مشتري أو ناقل مثلاً)
