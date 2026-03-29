@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Farmer, Buyer, Transporter
+from django.conf import settings
 
 class FarmerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
     transporter = TransporterSerializer(read_only=True)
     extra_data = serializers.JSONField(write_only=True, required=False)
     
-    # حقل الصورة الافتراضية
+    # حقل رابط الصورة
     profile_photo_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -41,12 +42,13 @@ class UserSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if obj.profile_photo:
             return request.build_absolute_uri(obj.profile_photo.url)
-        # صورة افتراضية احترافية تعتمد على اسم المستخدم
+        
+        # إذا حبيت تستعمل الأيقونة اللي حطيتها في الميديا (default_user.png)
+        # تقدر تستعمل السطرين اللي تحت، وإذا حبيت ui-avatars خليها كيما راهي
         name = obj.full_name or obj.username
         return f"https://ui-avatars.com/api/?name={name}&background=random&size=128"
 
     def validate_email(self, value):
-        # للتأكد أن الإيميل لا يتكرر إلا عند المستخدم الحالي (في حالة التعديل)
         user_id = self.instance.id if self.instance else None
         if User.objects.filter(email=value).exclude(id=user_id).exists():
             raise serializers.ValidationError("هذا البريد الإلكتروني مسجل مسبقاً.")
@@ -80,11 +82,31 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
-        # تعديل البيانات الأساسية (Profile Update)
+        # 1. استخراج بيانات الدور الإضافية إن وجدت
+        extra_data = validated_data.pop('extra_data', {})
+
+        # 2. تحديث بيانات المستخدم (User)
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+
         for attr, value in validated_data.items():
-            if attr == 'password':
-                instance.set_password(value)
-            else:
-                setattr(instance, attr, value)
+            setattr(instance, attr, value)
         instance.save()
+
+        # 3. تحديث بيانات الدور (Farmer/Buyer/Transporter) أوتوماتيكياً
+        role_instance = None
+        if instance.role == 'farmer' and hasattr(instance, 'farmer'):
+            role_instance = instance.farmer
+        elif instance.role == 'buyer' and hasattr(instance, 'buyer'):
+            role_instance = instance.buyer
+        elif instance.role == 'transporter' and hasattr(instance, 'transporter'):
+            role_instance = instance.transporter
+
+        if role_instance and extra_data:
+            for attr, value in extra_data.items():
+                if hasattr(role_instance, attr): # للتأكد أن الحقل موجود في الموديل
+                    setattr(role_instance, attr, value)
+            role_instance.save()
+
         return instance

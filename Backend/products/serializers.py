@@ -25,8 +25,7 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields = ['farmer']
 # serializers.py
 class OfficialPriceSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False, allow_null=True)
-
     class Meta:
         model = OfficialPrice
-        fields = ['id', 'product_name', 'price', 'image', 'date_set']
+        # أضف created_at إذا حبيت تظهر تاريخ أول إضافة أيضاً
+        fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at']

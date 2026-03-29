@@ -1,0 +1,223 @@
+
+
+--- PAGE 1 ---
+
+People’s Democratic Republic of Algeria
+Ministry of Higher Education and Scientific Research
+University Constantine 2 - Abdelhamid Mehri
+Faculty of New Information and Communication Technologies
+Department of Software Technologies and Information Systems
+Final Year Project for the Degree of Bachelor in
+Computer Science
+Software Engineering (TLSI)
+AgriGov Market: A Digital Platform
+for Agricultural Trade
+Prepared by:
+Slatmi Hacib
+Ghelbi Abdennour
+Kherrab AymanSupervised by:
+Dr. Zakaria Benzadri
+Academic Session: 2025 / 2026
+
+--- PAGE 2 ---
+
+Contents
+1 Requirements Analysis 1
+1.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 1
+1.2 Study of Existing Systems . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.3 Identification of Actors and Static Context Diagram . . . . . . . . . . . . . 6
+1.3.1 Identification of Actors and their Roles . . . . . . . . . . . . . . . . 6
+1.3.2 Static Context Diagram . . . . . . . . . . . . . . . . . . . . . . . . 7
+1.4 Use Cases . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+1.5 Specification Of The Main Cases . . . . . . . . . . . . . . . . . . . . . . . 13
+1.5.1 Case 1: Authentication . . . . . . . . . . . . . . . . . . . . . . . . . 14
+1.5.2 Case 2: Manage orders (Farmer) . . . . . . . . . . . . . . . . . . . . 15
+1.5.3 Case 3: Search product (Buyer) . . . . . . . . . . . . . . . . . . . . 17
+1.5.4 Case 4: Manage mission (Transporter) . . . . . . . . . . . . . . . . 19
+1.5.5 Case 5: User validation (Admin) . . . . . . . . . . . . . . . . . . . . 21
+1.6 Navigation Diagrams . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+1.6.1 Farmer Navigation Flow . . . . . . . . . . . . . . . . . . . . . . . . 24
+1.6.2 Buyer Navigation Flow . . . . . . . . . . . . . . . . . . . . . . . . . 24
+1.6.3 Transporter Navigation Flow . . . . . . . . . . . . . . . . . . . . . 25
+1.6.4 Admin Navigation Flow . . . . . . . . . . . . . . . . . . . . . . . . 26
+1.7 Human-Machine Interfaces (HMI) . . . . . . . . . . . . . . . . . . . . . . . 27
+1.8 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+2 System Design 32
+2.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+2.2 Domain Class Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+2.3 Database Design . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+2.3.1 Mapping Rules: Object to Relational . . . . . . . . . . . . . . . . . 34
+2.3.2 Relational Schema . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+i
+
+--- PAGE 3 ---
+
+List of Figures
+1.1 Interface of Agrimp Platform . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2 Interface of TogoAgriMarket . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.3 Interface of Agricart Platform . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.4 Interface of Easyplants Platform . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.5 Static Context Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+1.6 Use Case Diagram: Farmer . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+1.7 Use Case Diagram: Buyer . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+1.8 Use Case Diagram: Transporter . . . . . . . . . . . . . . . . . . . . . . . . 11
+1.9 Use Case Diagram: Admin . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+1.10 Global Use Case Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+1.11 System Sequence Diagram: Authentication . . . . . . . . . . . . . . . . . . 15
+1.12 System Sequence Diagram: Manage orders . . . . . . . . . . . . . . . . . . 17
+1.13 System Sequence Diagram: Search product . . . . . . . . . . . . . . . . . . 19
+1.14 System Sequence Diagram: Manage mission . . . . . . . . . . . . . . . . . 21
+1.15 System Sequence Diagram: User validation . . . . . . . . . . . . . . . . . . 23
+1.16 Navigation Diagram: Farmer . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+1.17 Navigation Diagram: Buyer . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+1.18 Navigation Diagram: Transporter . . . . . . . . . . . . . . . . . . . . . . . 26
+1.19 Navigation Diagram: Admin . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+1.20 Admin Management Interfaces . . . . . . . . . . . . . . . . . . . . . . . . . 27
+1.21 Farmer Management Interfaces . . . . . . . . . . . . . . . . . . . . . . . . 28
+1.22 Buyer Sourcing Interfaces . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+1.23 Transporter Logistics Interfaces . . . . . . . . . . . . . . . . . . . . . . . . 29
+1.24 AgriGov Market Mobile Application Overview . . . . . . . . . . . . . . . . 30
+2.1 Design Class Diagram of the AgriGov Market System . . . . . . . . . . . . 33
+2.2 Relational Database Schema of the AgriGov Market . . . . . . . . . . . . . 36
+ii
+
+--- PAGE 4 ---
+
+List of Tables
+1.1 Comparative Analysis of Existing Systems . . . . . . . . . . . . . . . . . . 5
+1.2 System Actors and their Roles . . . . . . . . . . . . . . . . . . . . . . . . . 7
+1.3 Textual Description: Authentication . . . . . . . . . . . . . . . . . . . . . 14
+1.4 Textual Description: Manage orders . . . . . . . . . . . . . . . . . . . . . . 16
+1.5 Textual Description: Search product . . . . . . . . . . . . . . . . . . . . . 18
+1.6 Textual Description: Manage mission . . . . . . . . . . . . . . . . . . . . . 20
+1.7 Textual Description: User validation . . . . . . . . . . . . . . . . . . . . . 22
+2.1 Detailed Object-to-Relational Mapping Rules . . . . . . . . . . . . . . . . 34
+iii
+
+--- PAGE 5 ---
+
+Chapter 1
+Requirements Analysis
+1.1 Introduction
+The modernization of the agricultural sector is a strategic priority for improving market
+transparency and strengthening national food security.
+This first chapterconstitutes the preliminary phase in the development of the
+AgriGov Marketplatform, a digital ecosystem designed to transition the Algerian agri-
+cultural sector from traditional, fragmented trade to a centralized digital marketplace.
+Currently, the sector faces critical challenges, including market monopolies, inefficient in-
+teractions between buyers and sellers, and significant logistics barriers that often lead to
+product spoilage. By bridging the gap between production, logistics, and regulation, our
+objective is to implement a national platform that directly connects farmers, buyers, and
+transporters while allowing the Ministry to oversee quality standards and official pricing.
+A precise understanding of these requirements is essential to design a solution that ensures
+user accountability, optimizes goods movement, and provides a reliable hub for all.
+To achieve this, the chapter is structured to provide a clear path from the initial
+problem analysis to the final requirements synthesis. We begin with a comparative study
+of existing systems to identify their limitations and better position our solution. We then
+define the various human and system actors interacting with the platform, followed by
+the identification of functional requirements through detailed Use Case diagrams. And
+we present the Textual Descriptions and the System Sequence Diagrams (SSD) to model
+the dynamic interactions between the actors and the system. Next we showcase the user
+experience through the Human-Machine Interfaces (HMI), presenting web and mobile
+prototypes. Finally, the chapter concludes by summarizing the identified needs, which
+will serve as the architectural foundation for the design and implementation phases of the
+project.
+1
+
+--- PAGE 6 ---
+
+1.2 Study of Existing Systems
+Presentation of Related Systems
+To better position theAgriGov Marketplatform, we conducted a comparative analysis
+of four existing systems. These platforms represent a mix of B2B marketplaces and B2C
+retail solutions:
+•Agrimp:A global B2B digital marketplace for agricultural crops that facilitates
+direct trade between professional farmers and industrial buyers.
+Link:https://agrimp.com/
+Figure 1.1: Interface of Agrimp Platform
+•TogoAgriMarket:A national digital platform dedicated to the promotion and
+sale of agricultural products in Togo, focusing on market price transparency.
+Link:https://www.agrimarket.tg/
+2
+
+--- PAGE 7 ---
+
+Figure 1.2: Interface of TogoAgriMarket
+•Agricart:An e-commerce platform designed to provide farmers with easy access
+to agricultural inputs, equipment, and a marketplace for their produce.
+Link:https://www.agricart.com/
+Figure 1.3: Interface of Agricart Platform
+•Easyplants:A specialized retail (B2C) platform that excels in inventory manage-
+ment, secure online payments, and customer feedback systems.
+Link:https://www.easyplants-artificielles.fr/
+3
+
+--- PAGE 8 ---
+
+Figure 1.4: Interface of Easyplants Platform
+4
+
+--- PAGE 9 ---
+
+Features and
+FunctionsAgrimp TogoAgriMarket Agricart Easyplants agrigove
+Account Creation
+(Farmer, Buyer,
+etc.)Yes Yes Yes Yes Yes
+Profile Management Yes Yes Yes Yes Yes
+Product Search and
+FilteringYes Yes Yes Yes Yes
+View Detailed Prod-
+uct InformationYes Yes Yes Yes Yes
+Order Management Yes Yes Yes Yes Yes
+Online Payment Yes No Yes Yes Yes
+Print Receipt and
+InvoicingYes No Yes Yes Yes
+Order and Delivery
+TrackingYes No No No Yes
+Order History Yes Yes Yes Yes Yes
+Submit Complaint
+SystemNo Yes No Yes Yes
+Rate and Review
+SellersYes No Yes Yes Yes
+Farmer Prod-
+uct/Inventory
+ManagementYes Yes Yes No Yes
+View Sales Revenue
+and AnalyticsYes No No No Yes
+Delivery Mission
+ManagementNo No No No Yes
+Update Delivery
+StatusNo No No No Yes
+Admin: User Ac-
+count ValidationYes Yes Yes Yes Yes
+Admin: Set Official
+PricesNo Yes No No Yes
+Transaction Moni-
+toringYes Yes No Yes Yes
+System Notifications Yes Yes Yes Yes Yes
+Table 1.1: Comparative Analysis of Existing Systems
+5
+
+--- PAGE 10 ---
+
+Identification of Limitations
+The analysis reveals that while commercial platforms likeEasyplantsandAgrimpexcel
+in the purchasing process, they leave significant gaps in the agricultural supply chain:
+•Specialized Logistics:None of the systems provide a dedicated portal for inde-
+pendent transporters to manage missions in real-time.
+•Inventory for Producers:Retail-focused systems like Easyplants do not offer
+inventory management tools specifically for farmers or producers.
+•State Regulation:There is a lack of tools for governmental bodies to set and
+enforce price authorities to prevent market monopolies.
+Project Positioning
+AgriGov Marketbridges these gaps by combining robust e-commerce features with
+a professional logistics engine and administrative oversight tools, creating a complete
+ecosystem for the Algerian agricultural sector.
+1.3 Identification of Actors and Static Context Dia-
+gram
+1.3.1 Identification of Actors and their Roles
+Actors model the roles of external entities that interact with the system. Our application
+contains 10 specialized actors, identified as follows:
+6

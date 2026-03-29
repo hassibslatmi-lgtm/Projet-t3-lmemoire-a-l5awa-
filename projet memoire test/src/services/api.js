@@ -100,3 +100,25 @@ export const updateCategory = (id, formData) => {
 // حذف صنف
 export const deleteCategory = (id) => 
   request(`/api/products/categories/${id}/delete/`, { method: 'DELETE' });
+
+// ── Farmer Profile (Mock) ─────────────────────────────────────────────────────
+export const updateFarmerProfile = async (formData) => {
+  // TODO (Backend Dev): Replace with a real API call to update farmer profile
+  console.log("MOCK Backend Call: updateFarmerProfile", formData);
+  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 1500));
+};
+
+export const deleteFarmerProduct = async (id) => {
+  console.log("MOCK Backend Call: deleteFarmerProduct", id);
+  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 500));
+};
+
+export const addFarmerProduct = async (payload) => {
+  console.log("MOCK Backend Call: addFarmerProduct", payload);
+  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 1000));
+};
+
+export const updateFarmerProduct = async (id, payload) => {
+  console.log("MOCK Backend Call: updateFarmerProduct", id, payload);
+  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 1000));
+};
