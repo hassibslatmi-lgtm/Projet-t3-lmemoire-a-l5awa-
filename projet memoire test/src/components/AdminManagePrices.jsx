@@ -33,25 +33,28 @@ export default function AdminManagePrices() {
 
   useEffect(() => { fetchPrices(); }, []);
 
-  // دالة الحفظ (إضافة أو تعديل)
-  const handleSavePrice = async (formData) => {
+const handleSavePrice = async (formData) => {
     const token = getToken();
     const config = { 
       headers: { 
-        'Authorization': `Token ${token}`, 
-        'Content-Type': 'multipart/form-data' 
+        'Authorization': `Token ${token}`
+        // ملاحظة: نحينا Content-Type يدوياً، Axios سيتكفل بالأمر
       } 
     };
+
     try {
       if (editingProduct) {
         await axios.patch(`${BASE_URL}/api/products/official-prices/update/${editingProduct.id}/`, formData, config);
       } else {
         await axios.post(`${BASE_URL}/api/products/official-prices/add/`, formData, config);
       }
-      fetchPrices(); // تحديث القائمة فوراً
+      fetchPrices(); 
       setIsModalOpen(false);
     } catch (err) { 
-      alert("Error: " + JSON.stringify(err.response?.data || "Server Error")); 
+      // عرض تفاصيل الخطأ بدقة في حالة الـ 500 أو الـ 400
+      const errorData = err.response?.data;
+      alert("Error: " + (typeof errorData === 'object' ? JSON.stringify(errorData) : errorData || "Server Error"));
+      console.error("Full Error Response:", err.response);
     }
   };
 

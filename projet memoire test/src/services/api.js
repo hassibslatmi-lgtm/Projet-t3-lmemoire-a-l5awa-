@@ -26,7 +26,7 @@ async function request(path, options = {}) {
   try {
     res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   } catch (networkErr) {
-    throw { status: 0, data: { error: 'Cannot connect to the server. Please make sure the backend is running on http://127.0.0.1:8000' } };
+    throw { status: 0, data: { error: 'Cannot connect to the server. Check if backend is running.' } };
   }
 
   const data = await res.json().catch(() => ({}));
@@ -48,9 +48,9 @@ export const signup = (payload) =>
   });
 
 // ── Admin — Accounts ──────────────────────────────────────────────────────────
-export const getPendingUsers   = ()         => request('/users/admin/pending/');
-export const getValidatedUsers = ()         => request('/users/admin/validated/');
-export const getAdminStats     = ()         => request('/users/admin/stats/');
+export const getPendingUsers   = () => request('/users/admin/pending/');
+export const getValidatedUsers = () => request('/users/admin/validated/');
+export const getAdminStats     = () => request('/users/admin/stats/');
 export const manageUser        = (id, action, reason) =>
   request(`/users/admin/manage/${id}/`, {
     method: 'POST',
@@ -59,20 +59,14 @@ export const manageUser        = (id, action, reason) =>
 export const toggleBlock = (id) =>
   request(`/users/admin/toggle-block/${id}/`, { method: 'POST', body: JSON.stringify({}) });
 
-// ── Admin — Categories (Added & Fixed) ────────────────────────────────────────
-
-// جلب كل الأصناف
+// ── Admin — Categories (CRUD) ─────────────────────────────────────────────────
 export const getCategories = () => request('/api/products/categories/');
 
-// إضافة صنف جديد (بما أنه توجد صورة، نرسل FormData مباشرة)
 export const addCategory = (formData) => {
   const token = getToken();
   return fetch(`${BASE_URL}/api/products/categories/add/`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Token ${token}`,
-      // لا نضع Content-Type هنا، المتصفح سيتكفل بها مع الصور تلقائياً
-    },
+    headers: { 'Authorization': `Token ${token}` },
     body: formData,
   }).then(async res => {
     const data = await res.json().catch(() => ({}));
@@ -81,14 +75,11 @@ export const addCategory = (formData) => {
   });
 };
 
-// تعديل صنف
 export const updateCategory = (id, formData) => {
   const token = getToken();
   return fetch(`${BASE_URL}/api/products/categories/${id}/update/`, {
     method: 'PATCH',
-    headers: {
-      'Authorization': `Token ${token}`,
-    },
+    headers: { 'Authorization': `Token ${token}` },
     body: formData,
   }).then(async res => {
     const data = await res.json().catch(() => ({}));
@@ -97,28 +88,53 @@ export const updateCategory = (id, formData) => {
   });
 };
 
-// حذف صنف
 export const deleteCategory = (id) => 
   request(`/api/products/categories/${id}/delete/`, { method: 'DELETE' });
 
-// ── Farmer Profile (Mock) ─────────────────────────────────────────────────────
-export const updateFarmerProfile = async (formData) => {
-  // TODO (Backend Dev): Replace with a real API call to update farmer profile
-  console.log("MOCK Backend Call: updateFarmerProfile", formData);
-  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 1500));
+// ── Farmer Profile (Matches your Django: profile/manage/) ─────────────────────
+export const getFarmerProfile = () => request('/users/profile/manage/');
+
+export const updateFarmerProfile = (formData) => {
+  const token = getToken();
+  return fetch(`${BASE_URL}/users/profile/manage/`, {
+    method: 'PATCH', 
+    headers: { 'Authorization': `Token ${token}` },
+    body: formData,
+  }).then(async res => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  });
 };
 
-export const deleteFarmerProduct = async (id) => {
-  console.log("MOCK Backend Call: deleteFarmerProduct", id);
-  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 500));
+// ── Farmer Products ───────────────────────────────────────────────────────────
+export const getFarmerProducts = () => request('/api/products/farmer/my-products/');
+
+export const addFarmerProduct = (formData) => {
+    const token = getToken();
+    return fetch(`${BASE_URL}/api/products/add/`, {
+      method: 'POST',
+      headers: { 'Authorization': `Token ${token}` },
+      body: formData,
+    }).then(async res => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw { status: res.status, data };
+      return data;
+    });
 };
 
-export const addFarmerProduct = async (payload) => {
-  console.log("MOCK Backend Call: addFarmerProduct", payload);
-  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 1000));
+export const updateFarmerProduct = (id, formData) => {
+    const token = getToken();
+    return fetch(`${BASE_URL}/api/products/${id}/update/`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Token ${token}` },
+      body: formData,
+    }).then(async res => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw { status: res.status, data };
+      return data;
+    });
 };
 
-export const updateFarmerProduct = async (id, payload) => {
-  console.log("MOCK Backend Call: updateFarmerProduct", id, payload);
-  return new Promise(resolve => setTimeout(() => resolve({ success: true }), 1000));
-};
+export const deleteFarmerProduct = (id) => 
+  request(`/api/products/${id}/delete/`, { method: 'DELETE' });

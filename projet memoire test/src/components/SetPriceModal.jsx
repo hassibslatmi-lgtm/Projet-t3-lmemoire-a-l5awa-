@@ -9,10 +9,9 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        // نستخدم product_name لأن هذا ما يرسله الباكيند
         setName(initialData.product_name || '');
         setPrice(initialData.price || '');
-        setImagePreview(initialData.image || ''); // الباكيند يرسل حقل اسمه image
+        setImagePreview(initialData.image || '');
       } else {
         setName('');
         setPrice('');
@@ -34,12 +33,12 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // نستخدم FormData لإرسال الملفات للباكيند
     const formData = new FormData();
     formData.append('product_name', name);
-    formData.append('price', price);
+    // تحويل السعر لرقم لضمان التوافق مع DecimalField في Django
+    formData.append('price', parseFloat(price));
     
-    // إذا اختار المستخدم صورة جديدة نرسلها، وإلا لا نرسل حقل الصورة
+    // إرسال الصورة فقط إذا تم اختيار ملف جديد
     if (fileInputRef.current && fileInputRef.current.files[0]) {
       formData.append('image', fileInputRef.current.files[0]);
     }
@@ -113,4 +112,4 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
       </div>
     </div>
   );
-}  
+}

@@ -18,18 +18,27 @@ export default function LoginPage() {
       const data = await login(email, password);
       
       // حفظ التوكن والبيانات في الـ LocalStorage
+      // ملاحظة: استعملنا data.role و data.full_name اللي يرجعهم الباكند
       saveAuth(data.token, data.role, data.full_name || data.username);
 
-      // الربط الحقيقي: إذا كان الأدمن (Ministry) أو Superuser
+      console.log("Login Success, Role:", data.role);
+
+      // ── التوجيه حسب النوع (Role) ──────────────────────────────────────────
       if (data.role === 'ministry' || data.is_superuser === true) {
-        console.log("Admin Access Granted");
+        // إذا كان أدمن
         navigate('/admin');
-      } else {
-        console.log("User Access Granted");
-        navigate('/'); // يروح للبروفايل أو الصفحة الرئيسية
+      } 
+      else if (data.role === 'farmer') {
+        // التعديل الجديد: إذا كان فلاح يروح ديريكت للبروفايل باش تـتيسطي
+        navigate('/farmer/profile');
+      } 
+      else {
+        // الأنواع الأخرى (مشتري أو ناقل مثلاً)
+        navigate('/');
       }
+      
     } catch (err) {
-      // إظهار الخطأ القادم من الباكيند (مثل "كلمة السر خاطئة")
+      // إظهار الخطأ القادم من الباكيند
       const msg = err?.data?.error || 'Login failed. Please check your credentials.';
       setError(msg);
     } finally {
@@ -82,7 +91,7 @@ export default function LoginPage() {
                 <label className="block text-sm font-bold text-gray-700 uppercase">Email</label>
                 <input
                   className="block w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#386a20]/20 focus:border-[#386a20] outline-none transition-all"
-                  placeholder="admin@agrigov.dz" required type="email"
+                  placeholder="email@example.com" required type="email"
                   value={email} onChange={e => setEmail(e.target.value)}
                 />
               </div>
