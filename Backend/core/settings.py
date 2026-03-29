@@ -56,7 +56,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'agrigov_db',
         'USER': 'root',          
-        'PASSWORD': 'Vlvbrl25',  
+        'PASSWORD': '14024641',  
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }

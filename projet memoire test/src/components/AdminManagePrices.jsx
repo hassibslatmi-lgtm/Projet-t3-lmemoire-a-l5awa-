@@ -17,6 +17,7 @@ export default function AdminManagePrices() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [historyProduct, setHistoryProduct] = useState(null);
 
   // جلب البيانات من الباكيند
   const fetchPrices = async () => {
@@ -152,14 +153,23 @@ const handleSavePrice = async (formData) => {
                    <tr><td colSpan="3" className="text-center py-10 text-slate-400">No prices found.</td></tr>
                 ) : products.map(prod => (
                   <tr key={prod.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 flex items-center gap-3">
-                      <img 
-                        src={prod.image || 'https://via.placeholder.com/100'} 
-                        className="size-12 rounded-lg border object-cover shadow-sm" 
-                        onError={(e) => e.target.src='https://via.placeholder.com/100'} 
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm text-slate-800">{prod.product_name}</span>
+                    <td 
+                        className="px-6 py-4 flex items-center gap-3 cursor-pointer group" 
+                        onClick={() => setHistoryProduct(prod)}
+                        title="View Price History"
+                    >
+                      <div className="relative">
+                        <img 
+                          src={prod.image || 'https://via.placeholder.com/100'} 
+                          className="size-12 rounded-lg border object-cover shadow-sm group-hover:brightness-90 transition-all" 
+                          onError={(e) => e.target.src='https://via.placeholder.com/100'} 
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-blue-100 text-blue-600 rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-[10px]">history</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col group-hover:text-blue-700 transition-colors">
+                        <span className="font-bold text-sm text-slate-800 group-hover:text-blue-700 transition-colors">{prod.product_name}</span>
                         <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
                           <span className="material-symbols-outlined text-[12px]">calendar_today</span>
                           Added: {new Date(prod.created_at).toLocaleDateString()}
@@ -177,7 +187,10 @@ const handleSavePrice = async (formData) => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1">
-                        <button onClick={() => { setEditingProduct(prod); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all">
+                        <button onClick={() => setHistoryProduct(prod)} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-all" title="View History">
+                          <span className="material-symbols-outlined text-[20px]">history</span>
+                        </button>
+                        <button onClick={() => { setEditingProduct(prod); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all" title="Edit Price">
                           <span className="material-symbols-outlined text-[20px]">edit</span>
                         </button>
                         <button onClick={() => handleDeletePrice(prod.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all">
@@ -199,6 +212,96 @@ const handleSavePrice = async (formData) => {
         onSave={handleSavePrice} 
         initialData={editingProduct} 
       />
+
+      {/* History Modal */}
+      {historyProduct && (
+         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden">
+               <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white z-20">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                        <span className="material-symbols-outlined">update</span>
+                     </div>
+                     <div>
+                         <h2 className="text-lg font-black text-slate-800 leading-tight">Price History</h2>
+                         <p className="text-xs text-slate-500 font-medium">Tracking changes for: <span className="font-bold text-slate-800">{historyProduct.product_name}</span></p>
+                     </div>
+                  </div>
+                  <button onClick={() => setHistoryProduct(null)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center">
+                     <span className="material-symbols-outlined text-lg">close</span>
+                  </button>
+               </div>
+               
+               <div className="p-8 bg-slate-50/50 flex-1 overflow-y-auto max-h-[60vh]">
+                   <div className="relative mx-auto max-w-md">
+                      {/* Vertical Line */}
+                      <div className="absolute left-6 top-5 bottom-5 w-0.5 bg-slate-200"></div>
+                      
+                      {/* Current Price */}
+                      <div className="relative pl-16 py-4 group">
+                          <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full border-4 border-slate-50 bg-blue-500 text-white shadow-sm z-10 transition-transform group-hover:scale-110">
+                              <span className="material-symbols-outlined text-[14px]">sell</span>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm relative">
+                              <div className="absolute w-3 h-3 bg-white border-l border-b border-blue-100 rotate-45 -left-[7px] top-1/2 -translate-y-1/2"></div>
+                              <div className="flex items-center justify-between mb-1">
+                                  <span className="font-black text-slate-800 text-lg">{historyProduct.price} DA</span>
+                                  <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100">Current Price</span>
+                              </div>
+                              <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                Set on {new Date(historyProduct.date_set).toLocaleDateString()}
+                              </p>
+                          </div>
+                      </div>
+
+                      {/* Fake Past Price 1 */}
+                      <div className="relative pl-16 py-4 group">
+                          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-full border-4 border-slate-50 bg-slate-200 text-slate-500 shadow-sm z-10 transition-transform group-hover:scale-110">
+                              <span className="material-symbols-outlined text-[12px]">history</span>
+                          </div>
+                          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm opacity-80 hover:opacity-100 transition-opacity relative">
+                              <div className="absolute w-3 h-3 bg-white border-l border-b border-slate-200 rotate-45 -left-[7px] top-1/2 -translate-y-1/2"></div>
+                              <div className="flex items-center justify-between mb-1">
+                                  <span className="font-bold text-slate-700 text-base">{(parseFloat(historyProduct.price) * 0.9).toFixed(2)} DA</span>
+                                  <span className="text-[10px] text-slate-400 font-medium">Previous</span>
+                              </div>
+                              <p className="text-xs text-slate-400 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                1 month ago
+                              </p>
+                          </div>
+                      </div>
+
+                      {/* Fake Past Price 2 */}
+                      <div className="relative pl-16 py-4 group">
+                          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-full border-4 border-slate-50 bg-slate-200 text-slate-500 shadow-sm z-10 transition-transform group-hover:scale-110">
+                              <span className="material-symbols-outlined text-[12px]">history</span>
+                          </div>
+                          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm opacity-60 hover:opacity-100 transition-opacity relative">
+                              <div className="absolute w-3 h-3 bg-white border-l border-b border-slate-200 rotate-45 -left-[7px] top-1/2 -translate-y-1/2"></div>
+                              <div className="flex items-center justify-between mb-1">
+                                  <span className="font-bold text-slate-700 text-base">{(parseFloat(historyProduct.price) * 0.82).toFixed(2)} DA</span>
+                                  <span className="text-[10px] text-slate-400 font-medium">Previous</span>
+                              </div>
+                              <p className="text-xs text-slate-400 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                3 months ago
+                              </p>
+                          </div>
+                      </div>
+
+                   </div>
+               </div>
+               
+               <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end">
+                   <button onClick={() => setHistoryProduct(null)} className="px-8 py-2.5 bg-slate-800 text-white font-bold rounded-xl shadow-md hover:bg-slate-900 transition-all text-sm">
+                       Close Timeline
+                   </button>
+               </div>
+            </div>
+         </div>
+      )}
     </div>
   );
 }
