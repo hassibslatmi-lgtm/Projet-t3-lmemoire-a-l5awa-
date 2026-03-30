@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, ProtectedError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -7,7 +7,10 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from .models import Category, OfficialPrice, Product, PriceHistory
 from .serializers import CategorySerializer, OfficialPriceSerializer, ProductSerializer
 
-# --- Category Views ---
+# ==========================================
+# --- 1. Category Views (الأصناف) ---
+# ==========================================
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_categories(request):
@@ -57,15 +60,20 @@ def delete_category(request, pk):
         return Response({'message': 'تم الحذف بنجاح'}, status=status.HTTP_204_NO_CONTENT)
     except Category.DoesNotExist:
         return Response({'error': 'الصنف غير موجود'}, status=status.HTTP_404_NOT_FOUND)
+    except ProtectedError:
+        return Response({
+            'error': 'لا يمكن حذف الصنف لأنه يحتوي على منتجات مرتبطة به. امحِ المنتجات أولاً.'
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
-# --- Official Price Views (Modified for Price History) ---
+# ==========================================
+# --- 2. Official Price Views (الأسعار الرسمية) ---
+# ==========================================
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_official_prices(request):
-    # ترتيب حسب الأحدث
     prices = OfficialPrice.objects.all().order_by('-date_set') 
-    # الـ Serializer سيتكفل بجلب الـ history تلقائياً
     serializer = OfficialPriceSerializer(prices, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -75,7 +83,6 @@ def list_official_prices(request):
 def add_official_price(request):
     serializer = OfficialPriceSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        # دالة save() في الموديل ستنشئ أول سجل في التاريخ تلقائياً
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -87,11 +94,10 @@ def update_official_price(request, pk):
     try:
         price_obj = OfficialPrice.objects.get(pk=pk)
     except OfficialPrice.DoesNotExist:
-        return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'السعر غير موجود'}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = OfficialPriceSerializer(price_obj, data=request.data, partial=True, context={'request': request})
     if serializer.is_valid():
-        # دالة save() في الموديل ستسجل السعر الجديد في التاريخ تلقائياً
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -103,9 +109,10 @@ def delete_official_price(request, pk):
     try:
         price = OfficialPrice.objects.get(pk=pk)
         price.delete()
-        return Response({'message': 'Deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'تم الحذف بنجاح'}, status=status.HTTP_204_NO_CONTENT)
     except OfficialPrice.DoesNotExist:
-        return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'السعر غير موجود'}, status=status.HTTP_404_NOT_FOUND)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_official_price(request, pk):
@@ -116,7 +123,11 @@ def get_official_price(request, pk):
     except OfficialPrice.DoesNotExist:
         return Response({'error': 'السعر الرسمي غير موجود'}, status=status.HTTP_404_NOT_FOUND)
 
-# --- Farmer Product Views ---
+
+# ==========================================
+# --- 3. Farmer Product Views (منتجات الفلاح) ---
+# ==========================================
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -137,7 +148,7 @@ def add_product(request):
     product_name = request.data.get('name')
     if not OfficialPrice.objects.filter(product_name=product_name).exists():
         return Response({
-            'error': f'المنتج "{product_name}" غير متاح. يرجى الاختيار من القائمة الرسمية المحددة من طرف الإدارة.'
+            'error': f'المنتج "{product_name}" غير متاح. يرجى الاختيار من القائمة الرسمية.'
         }, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = ProductSerializer(data=request.data, context={'request': request})
@@ -152,7 +163,6 @@ def add_product(request):
 def update_product(request, pk):
     if request.user.role != 'farmer':
         return Response({'error': 'Only farmers can update products'}, status=status.HTTP_403_FORBIDDEN)
-        
     try:
         product = Product.objects.get(pk=pk, farmer=request.user)
     except Product.DoesNotExist:
@@ -170,7 +180,6 @@ def update_product(request, pk):
 def delete_product(request, pk):
     if request.user.role != 'farmer':
         return Response({'error': 'Only farmers can delete products'}, status=status.HTTP_403_FORBIDDEN)
-        
     try:
         product = Product.objects.get(pk=pk, farmer=request.user)
         product.delete()
@@ -178,18 +187,22 @@ def delete_product(request, pk):
     except Product.DoesNotExist:
         return Response({'error': 'Product not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
 
-# --- Buyer Product Views (Search & Details) ---
+
+# ==========================================
+# --- 4. Buyer Views (البحث والتفاصيل) ---
+# ==========================================
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated]) # لازم يكون مسجل دخول
 def list_all_products(request):
-    """
-    عرض كل المنتجات مع إمكانية البحث والفلترة (للمشتري)
-    Step 1-3 of the sequence diagram.
-    """
+    # التأكد أن المستخدم هو مشتري (Buyer)
+    if request.user.role != 'buyer':
+        return Response({'error': 'عذراً، خدمة البحث متاحة للمشترين فقط.'}, status=status.HTTP_403_FORBIDDEN)
+
     queryset = Product.objects.all().order_by('-created_at')
     
-    # البحث بالكلمة المفتاحية (الاسم أو الوصف)
+    # البحث بالاسم أو الوصف
     search_query = request.query_params.get('search', None)
     if search_query:
         queryset = queryset.filter(
@@ -202,16 +215,25 @@ def list_all_products(request):
     if category_id:
         queryset = queryset.filter(category_id=category_id)
         
+    # تحديد العدد (مثلاً limit=4 للـ Home Page)
+    limit = request.query_params.get('limit', None)
+    if limit:
+        try:
+            queryset = queryset[:int(limit)]
+        except (ValueError, TypeError):
+            pass
+
     serializer = ProductSerializer(queryset, many=True, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated]) # لازم يكون مسجل دخول
 def get_product_detail(request, pk):
-    """
-    عرض تفاصيل المنتج (للمشتري)
-    Step 4-5 of the sequence diagram.
-    """
+    # التأكد أن المستخدم هو مشتري (Buyer)
+    if request.user.role != 'buyer':
+        return Response({'error': 'عذراً، التفاصيل متاحة للمشترين فقط.'}, status=status.HTTP_403_FORBIDDEN)
+
     try:
         product = Product.objects.get(pk=pk)
         serializer = ProductSerializer(product, context={'request': request})
