@@ -127,3 +127,7 @@ EMAIL_HOST_USER = 'agrigivaha@gmail.com'
 EMAIL_HOST_PASSWORD = 'hcaknkevjrsjokqq'   
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# payment api
+# CHARGILY_KEY = "test_pk_9yUaWCioOTEAQ9IMH5IfNByGmQ3QmvA0P4AIWf4u"
+CHARGILY_SECRET_KEY = "test_sk_DFcGt3l8cMNz9RqYcA7y59L1DlGrrREqrepUyNbk"
+CHARGILY_BASE_URL = "https://pay.chargily.net/test/api/v2"
