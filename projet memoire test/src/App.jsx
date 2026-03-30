@@ -10,6 +10,7 @@ import HomePage from './components/HomePage';
 import CategoryPage from './components/CategoryPage';
 import ProductDetailPage from './components/ProductDetailPage';
 import BuyerDashboard from './components/BuyerDashboard';
+import PaymentPage from './components/PaymentPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/category" element={<CategoryPage />} />
         <Route path="/category/:categoryName" element={<CategoryPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
+        <Route path="/payment/:productId" element={<PaymentPage />} />
         <Route path="/buyer" element={<BuyerDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

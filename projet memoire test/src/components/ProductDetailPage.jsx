@@ -108,12 +108,7 @@ export default function ProductDetailPage() {
 
             {/* Controls */}
             <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center border border-primary/20 rounded-xl overflow-hidden bg-white">
-                <button className="px-4 py-3 hover:bg-primary/5 text-primary outline-none"><span className="material-symbols-outlined text-sm">remove</span></button>
-                <input className="w-12 text-center border-none focus:ring-0 text-slate-900 bg-transparent font-bold outline-none" type="text" readOnly value="1"/>
-                <button className="px-4 py-3 hover:bg-primary/5 text-primary outline-none"><span className="material-symbols-outlined text-sm">add</span></button>
-              </div>
-              <button className="flex-1 min-w-[200px] bg-primary text-white font-bold py-3.5 px-8 rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+              <button onClick={() => navigate('/payment/' + id)} className="flex-1 min-w-[200px] bg-primary text-white font-bold py-3.5 px-8 rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
                  Place Order
               </button>
               <button className="size-12 flex items-center justify-center bg-rose-50 border border-rose-100 rounded-xl text-rose-500 hover:bg-rose-100 transition-colors">
