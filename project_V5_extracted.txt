@@ -221,3 +221,328 @@ gram
 Actors model the roles of external entities that interact with the system. Our application
 contains 10 specialized actors, identified as follows:
 6
+
+--- PAGE 11 ---
+
+Actor Type Role Description
+Farmer Primary Publishesproducts, managesorders, andmon-
+itors sales.
+Buyer Primary Searches for products, makes payments, and
+tracks deliveries.
+Transporter Primary Handles local deliveries and updates delivery
+status.
+Transporter Company Primary Manages large-scale transportation, fleet of
+trucks, drivers, and national missions.
+Quality Control Primary Verifieshealthstandardsandissuesdigitalcer-
+tificates.
+Admin Secondary Validates users, sets official prices, and moni-
+tors the market.
+Payment System Secondary Secures transactions and processes invoices.
+Warehouse Primary Manages inventory and prepares orders for
+dispatch.
+Weather System Secondary Provides climate forecasts and alerts for logis-
+tics.
+Veterinarian Primary Performs animal health inspections and
+records medical data.
+Table 1.2: System Actors and their Roles
+1.3.2 Static Context Diagram
+A Static Context Diagram defines the system’s boundary and shows external actors with-
+out detailing internal data flows.
+7
+
+--- PAGE 12 ---
+
+Figure 1.5: Static Context Diagram
+1.4 Use Cases
+Use Case Diagram: is a visual representation of the functional requirements of a
+system. It shows the interactions between external actors (users or other systems) and
+the specific actions (use cases) the system performs. Its main purpose is to define the
+scope of the system and "who" can do "what" without explaining the technical details.
+Identification of Use Cases by Actor
+This section details specific functionalities for each actor and the corresponding use case
+diagram :
+A. Farmer
+The Farmer interacts with the system primarily to manage their agricultural inventory
+and track business performance.
+•Inventory Management:Allows the farmer to add, edit, or delete agricultural
+products and manage stock levels.
+•Order & Sales Tracking:Enables the farmer to accept or reject orders, track
+deliveries, and monitor revenue history.
+8
+
+--- PAGE 13 ---
+
+Figure 1.6: Use Case Diagram: Farmer
+B. Buyer
+The Buyer uses the platform to source products efficiently and manage their commercial
+purchases.
+•Purchasing Process:Allows buyers to search and filter products, place orders,
+and perform secure online payments.
+•Order Management:Enables tracking of deliveries, downloading invoices, and
+rating sellers or submitting complaints.
+9
+
+--- PAGE 14 ---
+
+Figure 1.7: Use Case Diagram: Buyer
+C. Transporter
+Individual transporters manage their specific delivery tasks and personal earnings via the
+system.
+•Mission Handling:Allows the transporter to view delivery requests and choose
+to accept or reject specific missions.
+•Delivery Updates:Provides tools to update real-time delivery status and view
+mission history and total earnings.
+10
+
+--- PAGE 15 ---
+
+Figure 1.8: Use Case Diagram: Transporter
+D. Admin (Ministry)
+The Administrator ensures the platform remains secure and follows national agricultural
+regulations.
+•Account Governance:Responsible for validating, blocking, or suspending user
+accounts and managing system roles.
+•System Oversight:Allows the setting of official prices, monitoring transactions,
+and generating national market reports.
+11
+
+--- PAGE 16 ---
+
+Figure 1.9: Use Case Diagram: Admin
+Global Use Case Diagram
+The Global Use Case Diagramis a complete overview of the entire project. It com-
+bines all actors and all functionalities into one single diagram to show the full scope of
+the AgriGov Market platform:
+12
+
+--- PAGE 17 ---
+
+Figure 1.10: Global Use Case Diagram
+1.5 Specification Of The Main Cases
+System Sequence Diagram :
+is a visual representation that shows the chronological order of interactions between an
+external Actor and the System. It treats the entire system as a "black box" to illustrate
+the input events and output responses that occur during a specific use case.
+13
+
+--- PAGE 18 ---
+
+1.5.1 Case 1: Authentication
+This use case describes the process of verifying user identity to grant secure access
+Field Description
+Use Case Name Authentication
+Primary Actors All Actors (Farmer, Buyer, Transporter, Admin)
+Objective To verify the user’s identity and grant secure access to the
+platform’s features.
+Pre-conditions The user must have a previously registered and validated
+account in the system database.
+Nominal Scenario1. The user chooses to authenticate.
+2. The system displays the authentication page.
+3. The user enters their information (Email and password).
+4. The user submits the form.
+5. The system verifies the entered informations from
+database records.
+6. The system confirms the information.
+7. The system grants access and redirects the user to their
+specific dashboard.
+Alternative Scenario A1: Incorrect info:The sequence starts after point 5 of
+the normal scenario:
+•6. The system displays a message indicating that the in-
+formation is incorrect.
+•7. The system asks the user to re-enter the correct infor-
+mation.
+Exception Scenario E1: Blocked Account:start from point 5 If the Admin
+has suspended the account:
+•6. Inform the user that they must wait or contact support.
+•7. The system cancels the operation.
+Post-conditions User is authenticated and granted access.
+Table 1.3: Textual Description: Authentication
+14
+
+--- PAGE 19 ---
+
+the system sequence diagram (SSD):
+Figure 1.11: System Sequence Diagram: Authentication
+1.5.2 Case 2: Manage orders (Farmer)
+This use case describes how the farmer reviews, accepts, or modifies incoming purchase
+requests.
+15
+
+--- PAGE 20 ---
+
+Field Description
+Use Case Manage orders
+Primary Actor Farmer
+Goal To allow farmers to manage incoming purchase requests
+Pre-conditions Authentification
+Nominal Scenario1. The farmer accesses the My Orders section.
+2. The system displays the list of received orders (product,
+quantity, price, buyer).
+3. The farmer selects an order.
+4. The farmer accepts the order.
+5. TheorderstatuschangestoConfirmedandistransmitted
+to the carrier.
+Exceptional Scenario E1: Refuse Request: Starts after step 3:
+•4. The farmer refuses the order.
+•5. The system displays a cancellation message.
+E2: Product No Longer Available: Starts after step 3:
+•4. The farmer refuses the order.
+•5. The system displays a cancellation message.
+E3: Quantity Modification: Starts after step 3:
+•4. The farmer modifies the available quantity before ac-
+cepting
+Post-conditions The order status is updated, and the system notifies the
+concerned parties.
+Table 1.4: Textual Description: Manage orders
+16
+
+--- PAGE 21 ---
+
+the system sequence diagram (SSD):
+Figure 1.12: System Sequence Diagram: Manage orders
+1.5.3 Case 3: Search product (Buyer)
+This use case outlines the steps a buyer takes to find specific agricultural products and
+view their details.
+17
+
+--- PAGE 22 ---
+
+Field Description
+Use Case Search Product
+Actor Buyer
+Objective The buyer searches for a product and views its details.
+Precondition The user is authenticated (logged in)
+Normal Scenario1. The Buyer types a keyword in the search bar
+2. The system checks the database for matching products
+3. The system shows the matching products
+4. The buyer selects a product
+5. The system displays the product details
+Alternative Scenario A1: No result found:
+•4. The system shows the message: "No results match
+your search".
+•5. The system suggests categories or similar products.
+Exceptional Scenarios E1: Search cancelled by the buyer: start from step 1 :
+•2. The buyer decides to cancel the search.
+•3. The system clears the search field.
+•4. The system returns the buyer to the main products
+page.
+E2: System error during search: start from step 2 :
+•6. The system fails to retrieve products from the
+database.
+•7. The system displays an error message
+Post-conditions The buyer has successfully searched for a product and
+viewed the details.
+Table 1.5: Textual Description: Search product
+18
+
+--- PAGE 23 ---
+
+the system sequence diagram (SSD):
+Figure 1.13: System Sequence Diagram: Search product
+1.5.4 Case 4: Manage mission (Transporter)
+This use case explains how transporters view available delivery tasks and commit to
+specific missions.
+19
+
+--- PAGE 24 ---
+
+Field Description
+Use Case Manage Mission
+Primary Actor Transporter
+Goal To allow transporters to select and commit to delivery tasks
+Pre-conditions Authentification
+Nominal Scenario1. The carrier accesses the Available Missions section.
+2. The system displays delivery requests (product, origin,
+destination, deadline).
+3. The carrier selects a mission.
+4. The carrier accepts the mission.
+5. The system updates the status to: Mission Assigned.
+Exceptional Scenario E1: Refuse the mission: Starts at step 3:
+•4. The carrier refuses the mission.
+•5. The system displays a refusal message.
+E2: cancel the mission: Starts at step 5:
+•6. The transporter cancel the mission
+•7. The system displays a cancellation message
+Post-conditions The mission status is updated and assigned to the trans-
+porter.
+Table 1.6: Textual Description: Manage mission
+20
+
+--- PAGE 25 ---
+
+the system sequence diagram (SSD):
+Figure 1.14: System Sequence Diagram: Manage mission
+1.5.5 Case 5: User validation (Admin)
+This use case describes how the Administrator verifies new registrations to approve or
+reject accounts.
+21
+
+--- PAGE 26 ---
+
+Field Description
+Actor Admin
+Objective Allow the admin to verify user information and decide
+whether to approve.
+Préconditions The administrator is authenticated.
+Main Scenario1. The admin accesses the "Manage Account" page.
+2. The system displays a list of pending accounts.
+3. The admin selects a user account.
+4. The system displays the account details.
+5. The admin reviews and verifies the information.
+6. The administrator clicks the "Validate" button.
+7. The system saves the validated account.
+8. The system updates the account status to "Validated".
+9. The system displays a success message.
+Alternative Scenarios A1: Incomplete or Incorrect Information:
+•6. The administrator detects missing information.
+•7. The administrator clicks "Reject" or "Request Correc-
+tion".
+•8. The system updates the status to "Pending Correc-
+tion".
+Exceptional Scenario E1: System error during validation: Starts at step 6:
+•7. The system fails to save the validation due to a tech-
+nical error.
+•8. The system displays an error message.
+•9. The account status remains Pending.
+Post-conditions The account status is updated in the database.
+Table 1.7: Textual Description: User validation
+22
+
+--- PAGE 27 ---
+
+the system sequence diagram (SSD):
+Figure 1.15: System Sequence Diagram: User validation
+23
+
+--- PAGE 28 ---
+
+1.6 Navigation Diagrams
+ANavigation Diagramis a high-level visual representation that maps the paths users
+take through an application. It defines the flow between different screens and interfaces,
+ensuring a logical and intuitive user experience by showing how each architectural com-
+ponent is connected.
+1.6.1 Farmer Navigation Flow
+The following diagram illustrates the navigation path for the Farmer, focusing on inven-
+tory management, warehouse monitoring, and order processing.
+Figure 1.16: Navigation Diagram: Farmer
+1.6.2 Buyer Navigation Flow
+Here, the navigation diagram for the Buyer shows the journey from product search and
+filtering to the final purchase and order tracking.
+24
+
+--- PAGE 29 ---
+
+Figure 1.17: Navigation Diagram: Buyer
+1.6.3 Transporter Navigation Flow
+This diagram details the interface transitions for the Transporter, specifically regarding
+mission browsing, acceptance, and delivery status updates.
+25
+
+--- PAGE 30 ---
+
+Figure 1.18: Navigation Diagram: Transporter
+1.6.4 Admin Navigation Flow
+The following flow outlines the administrative control panel, including user validation,
+category management, and market oversight tools.
+Figure 1.19: Navigation Diagram: Admin
+26

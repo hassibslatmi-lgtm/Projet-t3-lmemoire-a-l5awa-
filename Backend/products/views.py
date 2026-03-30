@@ -1,9 +1,10 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from .models import Category, OfficialPrice, Product, PriceHistory  # أضفنا PriceHistory هنا
+from .models import Category, OfficialPrice, Product, PriceHistory
 from .serializers import CategorySerializer, OfficialPriceSerializer, ProductSerializer
 
 # --- Category Views ---
@@ -177,3 +178,43 @@ def delete_product(request, pk):
     except Product.DoesNotExist:
         return Response({'error': 'Product not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
 
+# --- Buyer Product Views (Search & Details) ---
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_all_products(request):
+    """
+    عرض كل المنتجات مع إمكانية البحث والفلترة (للمشتري)
+    Step 1-3 of the sequence diagram.
+    """
+    queryset = Product.objects.all().order_by('-created_at')
+    
+    # البحث بالكلمة المفتاحية (الاسم أو الوصف)
+    search_query = request.query_params.get('search', None)
+    if search_query:
+        queryset = queryset.filter(
+            Q(name__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
+        
+    # الفلترة حسب الصنف
+    category_id = request.query_params.get('category', None)
+    if category_id:
+        queryset = queryset.filter(category_id=category_id)
+        
+    serializer = ProductSerializer(queryset, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_product_detail(request, pk):
+    """
+    عرض تفاصيل المنتج (للمشتري)
+    Step 4-5 of the sequence diagram.
+    """
+    try:
+        product = Product.objects.get(pk=pk)
+        serializer = ProductSerializer(product, context={'request': request})
+        return Response(serializer.data)
+    except Product.DoesNotExist:
+        return Response({'error': 'المنتج غير موجود'}, status=status.HTTP_404_NOT_FOUND)

@@ -12,6 +12,10 @@ urlpatterns = [
     path('official-prices/add/', views.add_official_price, name='add-price'),
     path('official-prices/delete/<int:pk>/', views.delete_official_price, name='delete-price'),
     path('official-prices/update/<int:pk>/', views.update_official_price, name='update-price'),
+    # --- Buyer Search and Product Detail URLs ---
+    path('search/', views.list_all_products, name='search-products'),
+    path('products/<int:pk>/', views.get_product_detail, name='product-detail'),
+
     # --- Farmer Product URLs ---
     path('farmer/products/', views.list_farmer_products, name='list-farmer-products'),
     path('farmer/products/add/', views.add_product, name='add-farmer-product'),
