@@ -45,10 +45,13 @@ export default function FarmerManageProfile() {
           farm_location: data.farmer?.farm_location || ''
         });
 
-        if (data.profile_picture) {
-          const fullUrl = data.profile_picture.startsWith('http')
-            ? data.profile_picture
-            : `${BASE_URL}${data.profile_picture}`;
+        // Use profile_photo_url from backend if available
+        if (data.profile_photo_url) {
+          setProfilePic(data.profile_photo_url);
+        } else if (data.profile_photo) {
+          const fullUrl = data.profile_photo.startsWith('http')
+            ? data.profile_photo
+            : `${BASE_URL}${data.profile_photo}`;
           setProfilePic(fullUrl);
         }
       } catch (err) {
@@ -110,9 +113,9 @@ export default function FarmerManageProfile() {
       };
       formData.append('extra_data', JSON.stringify(extra_data));
 
-      // Image Handling
+      // Image Handling - Match backend field: profile_photo
       if (fileInputRef.current?.files[0]) {
-        formData.append('profile_picture', fileInputRef.current.files[0]);
+        formData.append('profile_photo', fileInputRef.current.files[0]);
       }
 
       await updateFarmerProfile(formData);

@@ -6,6 +6,10 @@ import AdminDashboard from './components/AdminDashboard';
 import FarmerManageProfile from './components/FarmerManageProfile';
 import FarmerManageProducts from './components/FarmerManageProducts';
 import FarmerDashboard from './components/FarmerDashboard';
+import HomePage from './components/HomePage';
+import CategoryPage from './components/CategoryPage';
+import ProductDetailPage from './components/ProductDetailPage';
+import BuyerDashboard from './components/BuyerDashboard';
 
 function App() {
   return (
@@ -18,7 +22,12 @@ function App() {
         <Route path="/farmer/products" element={<FarmerManageProducts />} />
         <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
         <Route path="/farmer" element={<Navigate to="/farmer/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/category" element={<CategoryPage />} />
+        <Route path="/category/:categoryName" element={<CategoryPage />} />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
+        <Route path="/buyer" element={<BuyerDashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
