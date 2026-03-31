@@ -34,7 +34,7 @@ export default function LoginPage() {
       } 
       else {
         // الأنواع الأخرى (مشتري أو ناقل مثلاً)
-        navigate('/');
+        navigate('/home');
       }
       
     } catch (err) {

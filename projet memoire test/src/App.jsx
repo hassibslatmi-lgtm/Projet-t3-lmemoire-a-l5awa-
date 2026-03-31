@@ -23,7 +23,8 @@ function App() {
         <Route path="/farmer/products" element={<FarmerManageProducts />} />
         <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
         <Route path="/farmer" element={<Navigate to="/farmer/dashboard" replace />} />
-        <Route path="/" element={<HomePage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/category" element={<CategoryPage />} />
         <Route path="/category/:categoryName" element={<CategoryPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />

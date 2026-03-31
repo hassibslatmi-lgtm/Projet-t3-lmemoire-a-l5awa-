@@ -79,7 +79,7 @@ export default function PaymentPage() {
       {/* ---------------- HEADER ---------------- */}
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 md:px-20 py-4 bg-white sticky top-0 z-50">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/home')}>
             <div className="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
               <span className="material-symbols-outlined">agriculture</span>
             </div>

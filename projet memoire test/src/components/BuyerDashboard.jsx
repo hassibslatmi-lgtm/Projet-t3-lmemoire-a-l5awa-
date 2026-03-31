@@ -29,9 +29,9 @@ const mockOrders = [
 ];
 
 const statusConfig = {
-  'Delivered':    { color: 'bg-green-100 text-green-700 border-green-200',   icon: 'check_circle' },
-  'On the Way':   { color: 'bg-blue-100 text-blue-700 border-blue-200',     icon: 'local_shipping' },
-  'Order Placed': { color: 'bg-amber-100 text-amber-700 border-amber-200',  icon: 'package_2' },
+  'Delivered': { color: 'bg-green-100 text-green-700 border-green-200', icon: 'check_circle' },
+  'On the Way': { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: 'local_shipping' },
+  'Order Placed': { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: 'package_2' },
 };
 
 export default function BuyerDashboard() {
@@ -83,7 +83,7 @@ export default function BuyerDashboard() {
 
   const navItems = [
     { key: 'profile', label: 'Manage Profile', icon: 'person' },
-    { key: 'orders',  label: 'My Orders',      icon: 'receipt_long' },
+    { key: 'orders', label: 'My Orders', icon: 'receipt_long' },
   ];
 
   return (
@@ -92,7 +92,7 @@ export default function BuyerDashboard() {
 
         {/* ── Sidebar ── */}
         <aside className="hidden md:flex w-64 bg-surface border-r border-outline-variant/30 flex-col fixed h-full z-50">
-          <div className="p-6 flex items-center gap-3">
+          <div className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/home')}>
             <div className="bg-primary p-2 rounded-lg text-white flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
             </div>
@@ -104,11 +104,10 @@ export default function BuyerDashboard() {
               <div
                 key={item.key}
                 onClick={() => setActiveSection(item.key)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer font-medium transition-colors ${
-                  activeSection === item.key
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer font-medium transition-colors ${activeSection === item.key
                     ? 'bg-primary text-white shadow-md shadow-primary/20'
                     : 'text-on-surface-variant hover:bg-surface-container-high'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined" style={activeSection === item.key ? { fontVariationSettings: "'FILL' 1" } : {}}>{item.icon}</span>
                 <span>{item.label}</span>
@@ -220,10 +219,10 @@ export default function BuyerDashboard() {
                       </div>
                       <div className="space-y-5">
                         {[
-                          { label: 'Full Name',     name: 'full_name', type: 'text' },
-                          { label: 'Username',      name: 'username',  type: 'text' },
-                          { label: 'Email Address', name: 'email',     type: 'email' },
-                          { label: 'Phone Number',  name: 'phone',     type: 'tel' },
+                          { label: 'Full Name', name: 'full_name', type: 'text' },
+                          { label: 'Username', name: 'username', type: 'text' },
+                          { label: 'Email Address', name: 'email', type: 'email' },
+                          { label: 'Phone Number', name: 'phone', type: 'tel' },
                         ].map(field => (
                           <div key={field.name} className="flex flex-col gap-1.5">
                             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">{field.label}</label>

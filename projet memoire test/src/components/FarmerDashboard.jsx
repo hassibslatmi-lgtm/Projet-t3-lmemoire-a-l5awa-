@@ -8,6 +8,8 @@ export default function FarmerDashboard() {
   
   // Modal state
   const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [showAllProductsModal, setShowAllProductsModal] = useState(false);
+  const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
   const [complaintText, setComplaintText] = useState('');
 
   // Dummy fallback data since backend endpoints for dashboard aren't built yet
@@ -25,8 +27,8 @@ export default function FarmerDashboard() {
   ];
 
   const recentOrders = [
-    { id: '#ORD-7742', customer: 'Organic Fresh Co.', date: '2023-10-22', status: 'Shipped', amount: '1,240 DZD' },
-    { id: '#ORD-7741', customer: 'Sarah Johnson', date: '2023-10-21', status: 'Pending', amount: '450 DZD' },
+    { id: '#ORD-7742', customer: 'Organic Fresh Co.', date: '2023-10-22', status: 'On the way', amount: '1,240 DZD' },
+    { id: '#ORD-7741', customer: 'Sarah Johnson', date: '2023-10-21', status: 'Order Placed', amount: '450 DZD' },
     { id: '#ORD-7740', customer: 'City Mart Hub', date: '2023-10-20', status: 'Delivered', amount: '2,890 DZD' },
     { id: '#ORD-7739', customer: 'Green Valley Retail', date: '2023-10-19', status: 'Delivered', amount: '890 DZD' },
   ];
@@ -49,7 +51,7 @@ export default function FarmerDashboard() {
         
         {/* --- Sidebar --- */}
         <aside className="hidden md:flex w-64 bg-surface border-r border-outline-variant/30 flex-col fixed h-full z-50">
-          <div className="p-6 flex items-center gap-3">
+          <div className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/home')}>
             <div className="bg-primary p-2 rounded-lg text-white flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
             </div>
@@ -175,7 +177,7 @@ export default function FarmerDashboard() {
                <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
                   <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
                      <h2 className="text-lg font-black text-on-surface">Recent Products</h2>
-                     <button onClick={() => navigate('/farmer/products')} className="text-primary text-sm font-bold hover:underline">View All</button>
+                     <button onClick={() => setShowAllProductsModal(true)} className="text-primary text-sm font-bold hover:underline cursor-pointer">View All</button>
                   </div>
                   <div className="p-0 overflow-x-auto">
                      <table className="w-full text-left border-collapse">
@@ -203,7 +205,7 @@ export default function FarmerDashboard() {
                <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
                   <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
                      <h2 className="text-lg font-black text-on-surface">Recent Orders</h2>
-                     <button className="text-primary text-sm font-bold hover:underline">View All</button>
+                     <button onClick={() => setShowAllOrdersModal(true)} className="text-primary text-sm font-bold hover:underline cursor-pointer">View All</button>
                   </div>
                   <div className="p-0 overflow-x-auto">
                      <table className="w-full text-left border-collapse">
@@ -223,7 +225,8 @@ export default function FarmerDashboard() {
                                  </td>
                                  <td className="px-6 py-4">
                                     <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${
-                                       order.status === 'Shipped' || order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
+                                       order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                                       order.status === 'On the way' ? 'bg-blue-100 text-blue-700' :
                                        'bg-amber-100 text-amber-700'
                                     }`}>
                                        {order.status}
@@ -288,6 +291,102 @@ export default function FarmerDashboard() {
                   <button onClick={handleSendComplaint} disabled={!complaintText.trim()} className="px-8 py-2.5 bg-red-600 text-white font-bold rounded-xl shadow-md hover:bg-red-700 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
                      <span className="material-symbols-outlined text-sm">send</span> Send to Admin
                   </button>
+               </div>
+            </div>
+         </div>
+      )}
+
+      {/* All Products Modal */}
+      {showAllProductsModal && (
+         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-3xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col border border-outline-variant/20 overflow-hidden">
+               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface/95 backdrop-blur z-20">
+                  <div className="flex items-center gap-3">
+                     <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
+                     <h2 className="text-xl font-black text-on-surface">All Products</h2>
+                  </div>
+                  <button onClick={() => setShowAllProductsModal(false)} className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center cursor-pointer">
+                     <span className="material-symbols-outlined text-lg">close</span>
+                  </button>
+               </div>
+               
+               <div className="p-0 overflow-y-auto flex-1">
+                  <table className="w-full text-left border-collapse">
+                     <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold tracking-wider sticky top-0 z-10 shadow-sm">
+                        <tr>
+                           <th className="px-8 py-4 border-b border-outline-variant/20">Product Name</th>
+                           <th className="px-8 py-4 border-b border-outline-variant/20">Date Listed</th>
+                           <th className="px-8 py-4 border-b border-outline-variant/20 text-right">Stock</th>
+                        </tr>
+                     </thead>
+                     <tbody className="divide-y divide-outline-variant/20">
+                        {recentProducts.concat(recentProducts).map((product, idx) => (
+                           <tr key={`${product.id}-${idx}`} className="hover:bg-surface-container-lowest transition-colors group">
+                              <td className="px-8 py-4 font-bold text-on-surface">{product.name}</td>
+                              <td className="px-8 py-4 text-on-surface-variant text-sm font-medium">{product.date}</td>
+                              <td className="px-8 py-4 text-right font-bold text-on-surface">{product.stock}</td>
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
+               </div>
+
+               <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end bg-surface-container-lowest">
+                  <button onClick={() => setShowAllProductsModal(false)} className="px-6 py-2.5 rounded-xl bg-surface border border-outline-variant/50 font-bold hover:bg-surface-container transition-colors text-on-surface">Close</button>
+               </div>
+            </div>
+         </div>
+      )}
+
+      {/* All Orders Modal */}
+      {showAllOrdersModal && (
+         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col border border-outline-variant/20 overflow-hidden">
+               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface/95 backdrop-blur z-20">
+                  <div className="flex items-center gap-3">
+                     <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl" style={{ fontVariationSettings: "'FILL' 1" }}>list_alt</span>
+                     <h2 className="text-xl font-black text-on-surface">Order History</h2>
+                  </div>
+                  <button onClick={() => setShowAllOrdersModal(false)} className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center cursor-pointer">
+                     <span className="material-symbols-outlined text-lg">close</span>
+                  </button>
+               </div>
+               
+               <div className="p-0 overflow-y-auto flex-1">
+                  <table className="w-full text-left border-collapse">
+                     <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold tracking-wider sticky top-0 z-10 shadow-sm">
+                        <tr>
+                           <th className="px-8 py-4 border-b border-outline-variant/20">Order ID</th>
+                           <th className="px-8 py-4 border-b border-outline-variant/20">Customer</th>
+                           <th className="px-8 py-4 border-b border-outline-variant/20">Date</th>
+                           <th className="px-8 py-4 border-b border-outline-variant/20">Status</th>
+                           <th className="px-8 py-4 border-b border-outline-variant/20 text-right">Amount</th>
+                        </tr>
+                     </thead>
+                     <tbody className="divide-y divide-outline-variant/20">
+                        {recentOrders.concat(recentOrders).map((order, idx) => (
+                           <tr key={`${order.id}-${idx}`} className="hover:bg-surface-container-lowest transition-colors group">
+                              <td className="px-8 py-4 font-bold text-on-surface font-mono">{order.id}</td>
+                              <td className="px-8 py-4 font-bold text-on-surface">{order.customer}</td>
+                              <td className="px-8 py-4 text-sm text-on-surface-variant font-medium">{order.date}</td>
+                              <td className="px-8 py-4">
+                                 <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${
+                                    order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                                    order.status === 'On the way' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-amber-100 text-amber-700'
+                                 }`}>
+                                    {order.status}
+                                 </span>
+                              </td>
+                              <td className="px-8 py-4 text-right font-bold text-on-surface">{order.amount}</td>
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
+               </div>
+
+               <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end bg-surface-container-lowest">
+                  <button onClick={() => setShowAllOrdersModal(false)} className="px-6 py-2.5 rounded-xl bg-surface border border-outline-variant/50 font-bold hover:bg-surface-container transition-colors text-on-surface">Close</button>
                </div>
             </div>
          </div>

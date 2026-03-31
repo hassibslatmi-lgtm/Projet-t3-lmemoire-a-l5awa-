@@ -30,7 +30,7 @@ export default function AdminDashboard() {
       <div className="flex min-h-screen relative">
         {/* Sidebar */}
         <aside className="hidden md:flex w-64 bg-surface border-r border-outline-variant/30 flex-col fixed h-full z-50">
-          <div className="p-6 flex items-center gap-3">
+          <div className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/home')}>
             <div className="bg-primary p-2 rounded-lg text-white flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
             </div>

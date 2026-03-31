@@ -43,7 +43,7 @@ export default function CategoryPage() {
       {/* Header */}
       <header className="flex items-center justify-between border-b border-primary/10 px-6 md:px-20 py-4 bg-white sticky top-0 z-50">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/home')}>
             <div className="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
               <span className="material-symbols-outlined">agriculture</span>
             </div>
@@ -51,14 +51,14 @@ export default function CategoryPage() {
           </div>
         </div>
         <div className="flex gap-3">
-            <button onClick={() => navigate('/')} className="text-sm font-bold text-slate-600 hover:text-primary">Back to Home</button>
+            <button onClick={() => navigate('/home')} className="text-sm font-bold text-slate-600 hover:text-primary">Back to Home</button>
         </div>
       </header>
 
       <main className="max-w-[1440px] mx-auto px-6 md:px-20 py-8 w-full flex-1">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
-          <button className="text-primary font-medium text-sm flex items-center gap-1 hover:underline" onClick={() => navigate('/')}>
+          <button className="text-primary font-medium text-sm flex items-center gap-1 hover:underline" onClick={() => navigate('/home')}>
             <span className="material-symbols-outlined text-sm">home</span> Home
           </button>
           <span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
@@ -136,7 +136,7 @@ export default function CategoryPage() {
               <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
                 <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">inventory_2</span>
                 <p className="text-slate-500 font-bold">No products available in this category right now.</p>
-                <button onClick={() => navigate('/')} className="mt-4 text-primary font-bold hover:underline">Browse other categories</button>
+                <button onClick={() => navigate('/home')} className="mt-4 text-primary font-bold hover:underline">Browse other categories</button>
               </div>
             )}
           </>

@@ -60,7 +60,7 @@ export default function HomePage() {
       {/* --- Header --- */}
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 md:px-20 py-4 bg-white sticky top-0 z-50">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/home')}>
             <div className="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
               <span className="material-symbols-outlined">agriculture</span>
             </div>
@@ -245,7 +245,7 @@ export default function HomePage() {
           <div>
             <h4 className="font-bold text-slate-800 mb-6 uppercase tracking-wider text-xs">Quick Links</h4>
             <ul className="flex flex-col gap-4 text-sm font-medium text-slate-500">
-              <li><button onClick={() => navigate('/')} className="hover:text-primary transition-colors text-left">About Us</button></li>
+              <li><button onClick={() => navigate('/home')} className="hover:text-primary transition-colors text-left">About Us</button></li>
               <li><button onClick={() => navigate('/login')} className="hover:text-primary transition-colors text-left">Farmer Registration</button></li>
             </ul>
           </div>

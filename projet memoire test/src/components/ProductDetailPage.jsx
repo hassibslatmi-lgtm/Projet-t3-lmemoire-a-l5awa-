@@ -9,6 +9,22 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [newReviewRating, setNewReviewRating] = useState(0);
+  const [newReviewText, setNewReviewText] = useState('');
+  const [reviews, setReviews] = useState([]);
+
+  const handleSubmitReview = () => {
+    if (!newReviewText.trim()) return;
+    const newReview = {
+      id: Date.now(),
+      rating: newReviewRating || 5,
+      text: newReviewText,
+      author: 'Current User',
+      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    };
+    setReviews([newReview, ...reviews]);
+    setNewReviewText('');
+    setNewReviewRating(0);
+  };
 
   // جلب بيانات المنتج من السيرفر
   useEffect(() => {
@@ -38,7 +54,7 @@ export default function ProductDetailPage() {
       {/* ---------------- HEADER ---------------- */}
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 md:px-20 py-4 bg-white sticky top-0 z-50">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 text-primary cursor-pointer" onClick={() => navigate('/home')}>
             <div className="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
               <span className="material-symbols-outlined">agriculture</span>
             </div>
@@ -59,7 +75,7 @@ export default function ProductDetailPage() {
         <div className="flex flex-1 justify-end gap-8 items-center">
           <nav className="hidden lg:flex items-center gap-8">
             <a className="text-slate-700 text-sm font-medium hover:text-primary transition-colors" href="#">Shop</a>
-            <a className="text-primary text-sm font-medium transition-colors cursor-pointer" onClick={() => navigate('/')}>Categories</a>
+            <a className="text-primary text-sm font-medium transition-colors cursor-pointer" onClick={() => navigate('/home')}>Categories</a>
           </nav>
           <div className="flex gap-3">
             <button onClick={() => navigate('/login')} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
@@ -72,7 +88,7 @@ export default function ProductDetailPage() {
       <main className="max-w-[1440px] mx-auto px-6 md:px-20 py-8 w-full flex-1">
         {/* Breadcrumb */}
         <div className="flex flex-wrap gap-2 text-sm font-medium mb-8">
-          <a className="text-slate-500 hover:text-primary cursor-pointer" onClick={() => navigate('/')}>Home</a>
+          <a className="text-slate-500 hover:text-primary cursor-pointer" onClick={() => navigate('/home')}>Home</a>
           <span className="text-slate-300"><span className="material-symbols-outlined text-xs">chevron_right</span></span>
           <span className="text-slate-900 font-bold">{product.name}</span>
         </div>
@@ -177,13 +193,41 @@ export default function ProductDetailPage() {
                   <textarea 
                     className="w-full h-24 rounded-xl border border-slate-200 p-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors text-sm" 
                     placeholder="Share your thoughts about this product..."
+                    value={newReviewText}
+                    onChange={(e) => setNewReviewText(e.target.value)}
                   ></textarea>
                   <div className="flex justify-end mt-2">
-                    <button className="bg-primary text-white font-bold py-2.5 px-6 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-sm">
+                    <button 
+                      onClick={handleSubmitReview}
+                      className="bg-primary text-white font-bold py-2.5 px-6 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-sm"
+                    >
                       Submit Review
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* Render Reviews List */}
+              <div className="flex flex-col gap-4">
+                {reviews.map(review => (
+                  <div key={review.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-slate-800">{review.author}</p>
+                      <p className="text-xs font-medium text-slate-500">{review.date}</p>
+                    </div>
+                    <div className="flex text-amber-500 gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                         <span 
+                           key={star} 
+                           className="material-symbols-outlined text-[16px]" 
+                           style={{ fontVariationSettings: review.rating >= star ? "'FILL' 1" : "'FILL' 0" }}
+                         >star</span>
+                      ))}
+                    </div>
+                    <p className="text-slate-600 text-sm mt-2">{review.text}</p>
+                  </div>
+                ))}
+                {reviews.length === 0 && <p className="text-slate-500 text-sm py-4">No reviews yet. Be the first to add one!</p>}
               </div>
             </div>
           </div>
