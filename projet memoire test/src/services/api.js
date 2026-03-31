@@ -10,6 +10,7 @@ export const saveAuth = (token, role, fullName) => {
 export const getToken = () => localStorage.getItem('agrigov_token');
 export const getRole  = () => localStorage.getItem('agrigov_role');
 export const getName  = () => localStorage.getItem('agrigov_name');
+
 export const clearAuth = () => {
   localStorage.removeItem('agrigov_token');
   localStorage.removeItem('agrigov_role');
@@ -17,9 +18,13 @@ export const clearAuth = () => {
 };
 
 // ── Base fetch wrapper ────────────────────────────────────────────────────────
-async function request(path, options = {}) {
+export async function request(path, options = {}) {
   const token = getToken();
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const headers = { 
+    'Content-Type': 'application/json', 
+    ...(options.headers || {}) 
+  };
+  
   if (token) headers['Authorization'] = `Token ${token}`;
 
   let res;
@@ -51,7 +56,7 @@ export const signup = (payload) =>
 export const getPendingUsers   = () => request('/users/admin/pending/');
 export const getValidatedUsers = () => request('/users/admin/validated/');
 export const getAdminStats     = () => request('/users/admin/stats/');
-export const manageUser        = (id, action, reason) =>
+export const manageUser         = (id, action, reason) =>
   request(`/users/admin/manage/${id}/`, {
     method: 'POST',
     body: JSON.stringify({ action, reason }),
@@ -59,9 +64,23 @@ export const manageUser        = (id, action, reason) =>
 export const toggleBlock = (id) =>
   request(`/users/admin/toggle-block/${id}/`, { method: 'POST', body: JSON.stringify({}) });
 
-// ── Admin — Categories (CRUD) ─────────────────────────────────────────────────
+// ── Products & Categories ─────────────────────────────────────────────────────
 export const getCategories = () => request('/api/products/categories/');
 
+export const getCategoryDetail = (id) => 
+  request(`/api/products/categories/${id}/`);
+
+export const getProductsByCategory = (categoryId) => 
+  request(`/api/products/search/?category=${categoryId}`);
+
+// ── Orders & Payments (Chargily) ──────────────────────────────────────────────
+export const createOrder = (orderData) => 
+  request('/api/orders/place/', {
+    method: 'POST',
+    body: JSON.stringify(orderData),
+  });
+
+// ── Admin — Categories (CRUD) ─────────────────────────────────────────────────
 export const addCategory = (formData) => {
   const token = getToken();
   return fetch(`${BASE_URL}/api/products/categories/add/`, {
@@ -91,7 +110,7 @@ export const updateCategory = (id, formData) => {
 export const deleteCategory = (id) => 
   request(`/api/products/categories/${id}/delete/`, { method: 'DELETE' });
 
-// ── Farmer Profile (Matches your Django: profile/manage/) ─────────────────────
+// ── Farmer Profile ────────────────────────────────────────────────────────────
 export const getFarmerProfile = () => request('/users/profile/manage/');
 
 export const updateFarmerProfile = (formData) => {
