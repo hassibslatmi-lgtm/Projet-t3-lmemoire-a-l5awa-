@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, OfficialPrice, PriceHistory
+from .models import Category, Product, OfficialPrice, PriceHistory, ProductReview
 
 class CategorySerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=False, allow_null=True)
@@ -16,6 +16,14 @@ class OfficialPriceSerializer(serializers.ModelSerializer):
         model = OfficialPrice
         fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at', 'history']
 
+class ProductReviewSerializer(serializers.ModelSerializer):
+    buyer_name = serializers.ReadOnlyField(source='buyer.full_name')
+
+    class Meta:
+        model = ProductReview
+        fields = ['id', 'buyer', 'buyer_name', 'product', 'rating', 'comment', 'created_at']
+        read_only_fields = ['buyer', 'product']
+
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source='category.name')
     farmer_name = serializers.ReadOnlyField(source='farmer.full_name')
@@ -23,12 +31,14 @@ class ProductSerializer(serializers.ModelSerializer):
     
     # حقل إضافي لجلب السعر الرسمي آلياً من جدول OfficialPrice
     official_price = serializers.SerializerMethodField()
+    
+    reviews = ProductReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'farmer', 'farmer_name', 'category', 'category_name', 
-            'name', 'description', 'quantity', 'image', 'official_price', 'created_at'
+            'name', 'description', 'quantity', 'image', 'official_price', 'reviews', 'created_at'
         ]
         read_only_fields = ['farmer']
 

@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from django.db import IntegrityError
 from .models import Category, OfficialPrice, Product, PriceHistory
-from .serializers import CategorySerializer, OfficialPriceSerializer, ProductSerializer
+from .serializers import CategorySerializer, OfficialPriceSerializer, ProductSerializer, ProductReviewSerializer
+from orders.models import OrderItem
 
 # ==========================================
 # --- 1. Category Views (الأصناف) ---
@@ -240,3 +242,34 @@ def get_product_detail(request, pk):
         return Response(serializer.data)
     except Product.DoesNotExist:
         return Response({'error': 'المنتج غير موجود'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def add_product_review(request, pk):
+    if request.user.role != 'buyer':
+        return Response({'error': 'عذراً، التقييم متاح للمشترين فقط.'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        product = Product.objects.get(pk=pk)
+    except Product.DoesNotExist:
+        return Response({'error': 'المنتج غير موجود'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Check if user has purchased this product and it is delivered
+    has_purchased = OrderItem.objects.filter(
+        product=product,
+        order__buyer=request.user,
+        order__status='delivered'
+    ).exists()
+
+    if not has_purchased:
+        return Response({'error': 'لا يمكنك تقييم هذا المنتج إلا إذا قمت بشرائه واستلامه مسبقاً.'}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = ProductReviewSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        try:
+            serializer.save(buyer=request.user, product=product)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            return Response({'error': 'لقد قمت بتقييم هذا المنتج مسبقاً.'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

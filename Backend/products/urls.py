@@ -15,6 +15,7 @@ urlpatterns = [
     # --- Buyer Search and Product Detail URLs ---
     path('search/', views.list_all_products, name='search-products'),
     path('products/<int:pk>/', views.get_product_detail, name='product-detail'),
+    path('products/<int:pk>/review/', views.add_product_review, name='add-product-review'),
 
     # --- Farmer Product URLs ---
     path('farmer/products/', views.list_farmer_products, name='list-farmer-products'),

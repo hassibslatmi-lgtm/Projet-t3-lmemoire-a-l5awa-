@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clearAuth, getName } from '../services/api';
+import { 
+  clearAuth, 
+  getName, 
+  getFarmerStats, 
+  getFarmerOrders,
+  getFarmerProducts // تأكد بلي هاد الدالة كاين في ملف api.js تاعك
+} from '../services/api';
 
 export default function FarmerDashboard() {
   const navigate = useNavigate();
@@ -8,30 +14,47 @@ export default function FarmerDashboard() {
   
   // Modal state
   const [showComplaintModal, setShowComplaintModal] = useState(false);
-  const [showAllProductsModal, setShowAllProductsModal] = useState(false);
   const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
+  const [showAllProductsModal, setShowAllProductsModal] = useState(false); // Modal للمنتجات
   const [complaintText, setComplaintText] = useState('');
 
-  // Dummy fallback data since backend endpoints for dashboard aren't built yet
-  const stats = {
-    totalProducts: 24,
-    totalOrders: 156,
-    totalRevenue: '12,450 DZD',
-  };
+  // --- Real Backend State ---
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: '0.00 DZD',
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentProducts, setRecentProducts] = useState([]); // State للمنتجات
+  const [loading, setLoading] = useState(true);
 
-  const recentProducts = [
-    { id: 1, name: 'Organic Tomatoes', date: '2023-10-20', stock: '200 kg' },
-    { id: 2, name: 'Fresh Potatoes', date: '2023-10-21', stock: '500 kg' },
-    { id: 3, name: 'Green Apples', date: '2023-10-22', stock: '150 kg' },
-    { id: 4, name: 'Carrots', date: '2023-10-23', stock: '300 kg' },
-  ];
+  // --- Fetch Data from Backend ---
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const statsData = await getFarmerStats();
+        setStats({
+          totalProducts: statsData.total_products || 0,
+          totalOrders: statsData.total_orders || 0,
+          totalRevenue: `${statsData.total_spent || 0} DZD`,
+        });
 
-  const recentOrders = [
-    { id: '#ORD-7742', customer: 'Organic Fresh Co.', date: '2023-10-22', status: 'On the way', amount: '1,240 DZD' },
-    { id: '#ORD-7741', customer: 'Sarah Johnson', date: '2023-10-21', status: 'Order Placed', amount: '450 DZD' },
-    { id: '#ORD-7740', customer: 'City Mart Hub', date: '2023-10-20', status: 'Delivered', amount: '2,890 DZD' },
-    { id: '#ORD-7739', customer: 'Green Valley Retail', date: '2023-10-19', status: 'Delivered', amount: '890 DZD' },
-  ];
+        const ordersData = await getFarmerOrders();
+        setRecentOrders(ordersData || []);
+
+        // جلب المنتجات من الباكاند
+        const productsData = await getFarmerProducts(); 
+        setRecentProducts(productsData || []);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching farmer dashboard data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   const handleLogout = () => {
     clearAuth();
@@ -39,7 +62,6 @@ export default function FarmerDashboard() {
   };
 
   const handleSendComplaint = () => {
-    // In the future: send complaintText to backend
     alert('Complaint sent to administration successfully!');
     setComplaintText('');
     setShowComplaintModal(false);
@@ -79,12 +101,8 @@ export default function FarmerDashboard() {
                 {userName.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-black truncate text-on-surface leading-tight">
-                    {userName}
-                </p>
-                <p className="text-[11px] text-on-surface-variant truncate opacity-80">
-                    Farmer Account
-                </p>
+                <p className="text-sm font-black truncate text-on-surface leading-tight">{userName}</p>
+                <p className="text-[11px] text-on-surface-variant truncate opacity-80">Farmer Account</p>
               </div>
             </div>
           </div>
@@ -93,17 +111,16 @@ export default function FarmerDashboard() {
         {/* --- Main Content --- */}
         <main className="flex-1 md:ml-64 flex flex-col min-h-screen relative">
           
-          {/* Header */}
           <header className="h-16 bg-surface border-b border-outline-variant/30 px-4 md:px-8 flex items-center justify-between sticky top-0 z-40">
             <div className="flex-1 max-w-md hidden sm:block">
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-                <input className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" placeholder="Search products, orders..." type="text" />
+                <input className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" placeholder="Search..." type="text" />
               </div>
             </div>
             
             <div className="flex items-center gap-4 ml-auto">
-              <button className="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors relative cursor-pointer">
+              <button className="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high relative">
                 <span className="material-symbols-outlined">notifications</span>
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-surface"></span>
               </button>
@@ -115,281 +132,228 @@ export default function FarmerDashboard() {
             </div>
           </header>
 
-          {/* Page Content */}
           <div className="p-4 md:p-8 space-y-6 flex-1 max-w-7xl w-full mx-auto">
             
             {/* Welcome Banner */}
-            <div className="relative overflow-hidden rounded-2xl bg-primary/10 p-8 md:p-10 mb-8 border border-primary/20 flex flex-col md:flex-row justify-between items-center md:items-end gap-6">
+            <div className="relative overflow-hidden rounded-2xl bg-primary/10 p-8 mb-8 border border-primary/20 flex flex-col md:flex-row justify-between items-center gap-6">
                <div className="relative z-10 w-full text-center md:text-left">
-                  <h1 className="text-on-surface text-2xl md:text-3xl font-black leading-tight tracking-tight mb-2">Welcome back, {userName}!</h1>
-                  <div className="flex items-center justify-center md:justify-start gap-2 text-primary font-medium text-sm md:text-base">
+                  <h1 className="text-on-surface text-2xl md:text-3xl font-black mb-2">Welcome back, {userName}!</h1>
+                  <div className="flex items-center justify-center md:justify-start gap-2 text-primary font-medium">
                      <span className="material-symbols-outlined text-lg">calendar_today</span>
-                     <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • Reporting</span>
+                     <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                   </div>
                </div>
-               <button onClick={() => setShowComplaintModal(true)} className="relative z-10 px-6 py-3 bg-red-600/10 text-red-700 border border-red-200/50 font-bold rounded-xl hover:bg-red-600/20 transition-all flex items-center gap-2 whitespace-nowrap">
+               <button onClick={() => setShowComplaintModal(true)} className="relative z-10 px-6 py-3 bg-red-600/10 text-red-700 border border-red-200/50 font-bold rounded-xl hover:bg-red-600/20 transition-all flex items-center gap-2 cursor-pointer">
                   <span className="material-symbols-outlined text-[20px]">report_problem</span>
                   Send Complaint
                </button>
-               {/* Background decors */}
-               <div className="absolute right-[-20px] bottom-[-40px] opacity-5 pointer-events-none transform -rotate-12">
-                  <span className="material-symbols-outlined text-[200px]" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
-               </div>
             </div>
 
-            {/* Quick Stats Grid (3 columns as requested) */}
+            {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                     <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                        <span className="material-symbols-outlined">inventory</span>
-                     </div>
+               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+                  <div className="p-3 bg-blue-100 text-blue-600 rounded-xl w-fit mb-4">
+                     <span className="material-symbols-outlined">inventory</span>
                   </div>
-                  <p className="text-on-surface-variant text-sm font-bold uppercase tracking-wider mb-1">Total Products</p>
+                  <p className="text-on-surface-variant text-sm font-bold uppercase mb-1">Total Products</p>
                   <h3 className="text-3xl font-black text-on-surface">{stats.totalProducts}</h3>
                </div>
                
-               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                     <div className="p-3 bg-purple-100 text-purple-600 rounded-xl">
-                        <span className="material-symbols-outlined">shopping_cart_checkout</span>
-                     </div>
+               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+                  <div className="p-3 bg-purple-100 text-purple-600 rounded-xl w-fit mb-4">
+                     <span className="material-symbols-outlined">shopping_cart_checkout</span>
                   </div>
-                  <p className="text-on-surface-variant text-sm font-bold uppercase tracking-wider mb-1">Total Orders</p>
+                  <p className="text-on-surface-variant text-sm font-bold uppercase mb-1">Total Orders</p>
                   <h3 className="text-3xl font-black text-on-surface">{stats.totalOrders}</h3>
                </div>
 
-               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                     <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                        <span className="material-symbols-outlined">payments</span>
-                     </div>
+               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+                  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl w-fit mb-4">
+                     <span className="material-symbols-outlined">payments</span>
                   </div>
-                  <p className="text-on-surface-variant text-sm font-bold uppercase tracking-wider mb-1">Total Revenue</p>
+                  <p className="text-on-surface-variant text-sm font-bold uppercase mb-1">Total Revenue</p>
                   <h3 className="text-3xl font-black text-on-surface">{stats.totalRevenue}</h3>
                </div>
             </div>
 
-            {/* Two Lists Section */}
+            {/* --- Table Section (Products & Orders) --- */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                
-               {/* Recent Products List */}
-               <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
-                  <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
+               {/* Recent Products Table */}
+               <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                  <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center">
                      <h2 className="text-lg font-black text-on-surface">Recent Products</h2>
                      <button onClick={() => setShowAllProductsModal(true)} className="text-primary text-sm font-bold hover:underline cursor-pointer">View All</button>
                   </div>
-                  <div className="p-0 overflow-x-auto">
-                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold tracking-wider">
+                  <div className="overflow-x-auto">
+                     <table className="w-full text-left">
+                        <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold">
                            <tr>
-                              <th className="px-6 py-4 border-b border-outline-variant/20">Product Name</th>
-                              <th className="px-6 py-4 border-b border-outline-variant/20">Date Listed</th>
-                              <th className="px-6 py-4 border-b border-outline-variant/20 text-right">Stock</th>
+                              <th className="px-6 py-4">Product Name</th>
+                              <th className="px-6 py-4">Date Listed</th>
+                              <th className="px-6 py-4 text-right">Stock</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-outline-variant/20">
-                           {recentProducts.map(product => (
-                              <tr key={product.id} className="hover:bg-surface-container-lowest transition-colors group">
-                                 <td className="px-6 py-4 font-bold text-on-surface group-hover:text-primary transition-colors">{product.name}</td>
-                                 <td className="px-6 py-4 text-on-surface-variant text-sm font-medium">{product.date}</td>
-                                 <td className="px-6 py-4 text-right font-bold text-on-surface">{product.stock}</td>
-                              </tr>
-                           ))}
+                           {loading ? (
+                             <tr><td colSpan="3" className="text-center py-6">Loading...</td></tr>
+                           ) : recentProducts.length === 0 ? (
+                             <tr><td colSpan="3" className="text-center py-6 opacity-50">No products found.</td></tr>
+                           ) : (
+                             recentProducts.slice(0, 5).map(product => (
+                               <tr key={product.id} className="hover:bg-surface-container-lowest transition-colors">
+                                  <td className="px-6 py-4 font-bold text-on-surface">{product.name}</td>
+                                  <td className="px-6 py-4 text-sm font-medium">{new Date(product.created_at || Date.now()).toLocaleDateString()}</td>
+                                  <td className="px-6 py-4 text-right font-bold">{product.stock} {product.unit || 'kg'}</td>
+                               </tr>
+                             ))
+                           )}
                         </tbody>
                      </table>
                   </div>
                </div>
 
-               {/* Recent Orders List */}
-               <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
-                  <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
+               {/* Recent Orders Table */}
+               <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                  <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center">
                      <h2 className="text-lg font-black text-on-surface">Recent Orders</h2>
                      <button onClick={() => setShowAllOrdersModal(true)} className="text-primary text-sm font-bold hover:underline cursor-pointer">View All</button>
                   </div>
-                  <div className="p-0 overflow-x-auto">
-                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold tracking-wider">
+                  <div className="overflow-x-auto">
+                     <table className="w-full text-left">
+                        <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold">
                            <tr>
-                              <th className="px-6 py-4 border-b border-outline-variant/20">Order ID</th>
-                              <th className="px-6 py-4 border-b border-outline-variant/20">Status</th>
-                              <th className="px-6 py-4 border-b border-outline-variant/20 text-right">Amount</th>
+                              <th className="px-6 py-4">Order & Customer</th>
+                              <th className="px-6 py-4">Status</th>
+                              <th className="px-6 py-4 text-right">Amount</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-outline-variant/20">
-                           {recentOrders.map(order => (
-                              <tr key={order.id} className="hover:bg-surface-container-lowest transition-colors group relative">
-                                 <td className="px-6 py-4 font-bold text-on-surface">
-                                    {order.id}
-                                    <div className="text-xs text-on-surface-variant font-medium mt-1">{order.customer}</div>
-                                 </td>
-                                 <td className="px-6 py-4">
-                                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${
-                                       order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                                       order.status === 'On the way' ? 'bg-blue-100 text-blue-700' :
-                                       'bg-amber-100 text-amber-700'
-                                    }`}>
-                                       {order.status}
-                                    </span>
-                                 </td>
-                                 <td className="px-6 py-4 text-right font-bold text-on-surface">{order.amount}</td>
-                              </tr>
-                           ))}
+                           {loading ? (
+                             <tr><td colSpan="3" className="text-center py-6">Loading...</td></tr>
+                           ) : recentOrders.length === 0 ? (
+                             <tr><td colSpan="3" className="text-center py-6 opacity-50">No orders yet.</td></tr>
+                           ) : (
+                             recentOrders.slice(0, 5).map(order => (
+                               <tr key={order.id} className="hover:bg-surface-container-lowest transition-colors">
+                                  <td className="px-6 py-4 font-bold">
+                                    #{order.id}
+                                    <div className="text-xs text-on-surface-variant font-medium">{order.buyer_name}</div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                     <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase ${
+                                         order.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                     }`}>
+                                         {order.status}
+                                     </span>
+                                  </td>
+                                  <td className="px-6 py-4 text-right font-bold">{order.total_amount} DZD</td>
+                               </tr>
+                             ))
+                           )}
                         </tbody>
                      </table>
                   </div>
                </div>
 
             </div>
-
           </div>
-          
-          {/* Footer */}
-          <footer className="p-8 border-t border-outline-variant/30 text-center bg-surface mt-auto">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
-              <span className="text-primary font-bold">AgriGov</span>
-            </div>
-            <p className="text-on-surface-variant text-sm">© 2026 AgriGov Management System. All rights reserved.</p>
-          </footer>
-
         </main>
       </div>
 
-      {/* Complaint Modal */}
-      {showComplaintModal && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-surface w-full max-w-lg rounded-[2rem] shadow-2xl flex flex-col border border-outline-variant/20 overflow-hidden">
-               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface/95 backdrop-blur z-20">
-                  <div className="flex items-center gap-3">
-                     <span className="material-symbols-outlined text-red-600 bg-red-50 p-2 rounded-xl">report_problem</span>
-                     <h2 className="text-xl font-black text-on-surface">Submit Complaint</h2>
-                  </div>
-                  <button onClick={() => setShowComplaintModal(false)} className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center">
-                     <span className="material-symbols-outlined text-lg">close</span>
-                  </button>
-               </div>
-               
-               <div className="p-8 space-y-5 flex-1">
-                  <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/50 flex flex-col gap-1">
-                     <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date</span>
-                     <span className="font-bold text-on-surface">{new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</span>
-                  </div>
-                  <div>
-                     <label className="block text-sm font-bold uppercase tracking-wider text-on-surface-variant mb-2">Describe Your Issue</label>
-                     <textarea 
-                        value={complaintText}
-                        onChange={(e) => setComplaintText(e.target.value)}
-                        placeholder="Please write the details of your complaint here. It will be sent to the administration..."
-                        className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none font-medium min-h-[150px]"
-                     ></textarea>
-                  </div>
-               </div>
-
-               <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end gap-3 bg-surface-container-lowest">
-                  <button onClick={() => setShowComplaintModal(false)} className="px-6 py-2.5 rounded-xl border border-outline-variant/50 font-bold hover:bg-surface-container-high transition-colors text-on-surface-variant">Cancel</button>
-                  <button onClick={handleSendComplaint} disabled={!complaintText.trim()} className="px-8 py-2.5 bg-red-600 text-white font-bold rounded-xl shadow-md hover:bg-red-700 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
-                     <span className="material-symbols-outlined text-sm">send</span> Send to Admin
-                  </button>
-               </div>
-            </div>
-         </div>
-      )}
-
-      {/* All Products Modal */}
+      {/* --- All Products Modal --- */}
       {showAllProductsModal && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-surface w-full max-w-3xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col border border-outline-variant/20 overflow-hidden">
-               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface/95 backdrop-blur z-20">
-                  <div className="flex items-center gap-3">
-                     <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
-                     <h2 className="text-xl font-black text-on-surface">All Products</h2>
-                  </div>
-                  <button onClick={() => setShowAllProductsModal(false)} className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center cursor-pointer">
-                     <span className="material-symbols-outlined text-lg">close</span>
-                  </button>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-surface w-full max-w-3xl max-h-[85vh] rounded-[2rem] shadow-2xl border border-outline-variant/20 overflow-hidden flex flex-col">
+               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between">
+                  <h2 className="text-xl font-black">All Products</h2>
+                  <button onClick={() => setShowAllProductsModal(false)} className="material-symbols-outlined cursor-pointer">close</button>
                </div>
-               
-               <div className="p-0 overflow-y-auto flex-1">
-                  <table className="w-full text-left border-collapse">
-                     <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold tracking-wider sticky top-0 z-10 shadow-sm">
+               <div className="overflow-y-auto flex-1">
+                  <table className="w-full text-left">
+                     <thead className="bg-surface-container-low sticky top-0">
                         <tr>
-                           <th className="px-8 py-4 border-b border-outline-variant/20">Product Name</th>
-                           <th className="px-8 py-4 border-b border-outline-variant/20">Date Listed</th>
-                           <th className="px-8 py-4 border-b border-outline-variant/20 text-right">Stock</th>
+                           <th className="px-8 py-4">Name</th>
+                           <th className="px-8 py-4">Stock</th>
+                           <th className="px-8 py-4 text-right">Date</th>
                         </tr>
                      </thead>
-                     <tbody className="divide-y divide-outline-variant/20">
-                        {recentProducts.concat(recentProducts).map((product, idx) => (
-                           <tr key={`${product.id}-${idx}`} className="hover:bg-surface-container-lowest transition-colors group">
-                              <td className="px-8 py-4 font-bold text-on-surface">{product.name}</td>
-                              <td className="px-8 py-4 text-on-surface-variant text-sm font-medium">{product.date}</td>
-                              <td className="px-8 py-4 text-right font-bold text-on-surface">{product.stock}</td>
+                     <tbody>
+                        {recentProducts.map(product => (
+                           <tr key={product.id} className="border-b border-outline-variant/10">
+                              <td className="px-8 py-4 font-bold">{product.name}</td>
+                              <td className="px-8 py-4">{product.stock} {product.unit || 'kg'}</td>
+                              <td className="px-8 py-4 text-right">{new Date(product.created_at).toLocaleDateString()}</td>
                            </tr>
                         ))}
                      </tbody>
                   </table>
                </div>
-
-               <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end bg-surface-container-lowest">
-                  <button onClick={() => setShowAllProductsModal(false)} className="px-6 py-2.5 rounded-xl bg-surface border border-outline-variant/50 font-bold hover:bg-surface-container transition-colors text-on-surface">Close</button>
+               <div className="p-6 text-right">
+                  <button onClick={() => setShowAllProductsModal(false)} className="px-6 py-2 bg-primary text-white rounded-lg cursor-pointer">Close</button>
                </div>
             </div>
-         </div>
+          </div>
       )}
 
-      {/* All Orders Modal */}
-      {showAllOrdersModal && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col border border-outline-variant/20 overflow-hidden">
-               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface/95 backdrop-blur z-20">
-                  <div className="flex items-center gap-3">
-                     <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl" style={{ fontVariationSettings: "'FILL' 1" }}>list_alt</span>
-                     <h2 className="text-xl font-black text-on-surface">Order History</h2>
-                  </div>
-                  <button onClick={() => setShowAllOrdersModal(false)} className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center cursor-pointer">
-                     <span className="material-symbols-outlined text-lg">close</span>
-                  </button>
+      {/* --- Other Modals (Complaint & All Orders) --- */}
+      {showComplaintModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-surface w-full max-w-lg rounded-[2rem] shadow-2xl border border-outline-variant/20 overflow-hidden">
+               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between">
+                  <h2 className="text-xl font-black">Submit Complaint</h2>
+                  <button onClick={() => setShowComplaintModal(false)} className="material-symbols-outlined cursor-pointer">close</button>
                </div>
-               
-               <div className="p-0 overflow-y-auto flex-1">
-                  <table className="w-full text-left border-collapse">
-                     <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold tracking-wider sticky top-0 z-10 shadow-sm">
+               <div className="p-8">
+                  <textarea 
+                    value={complaintText}
+                    onChange={(e) => setComplaintText(e.target.value)}
+                    placeholder="Describe your issue..."
+                    className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-4 min-h-[150px] outline-none focus:border-primary"
+                  />
+               </div>
+               <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end gap-3">
+                  <button onClick={() => setShowComplaintModal(false)} className="px-6 py-2.5 font-bold cursor-pointer">Cancel</button>
+                  <button onClick={handleSendComplaint} className="px-8 py-2.5 bg-red-600 text-white font-bold rounded-xl cursor-pointer">Send</button>
+               </div>
+            </div>
+          </div>
+      )}
+
+      {showAllOrdersModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-[2rem] shadow-2xl border border-outline-variant/20 overflow-hidden flex flex-col">
+               <div className="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between">
+                  <h2 className="text-xl font-black">Order History</h2>
+                  <button onClick={() => setShowAllOrdersModal(false)} className="material-symbols-outlined cursor-pointer">close</button>
+               </div>
+               <div className="overflow-y-auto flex-1">
+                  <table className="w-full text-left">
+                     <thead className="bg-surface-container-low sticky top-0">
                         <tr>
-                           <th className="px-8 py-4 border-b border-outline-variant/20">Order ID</th>
-                           <th className="px-8 py-4 border-b border-outline-variant/20">Customer</th>
-                           <th className="px-8 py-4 border-b border-outline-variant/20">Date</th>
-                           <th className="px-8 py-4 border-b border-outline-variant/20">Status</th>
-                           <th className="px-8 py-4 border-b border-outline-variant/20 text-right">Amount</th>
+                           <th className="px-8 py-4">ID</th>
+                           <th className="px-8 py-4">Customer</th>
+                           <th className="px-8 py-4">Status</th>
+                           <th className="px-8 py-4 text-right">Amount</th>
                         </tr>
                      </thead>
-                     <tbody className="divide-y divide-outline-variant/20">
-                        {recentOrders.concat(recentOrders).map((order, idx) => (
-                           <tr key={`${order.id}-${idx}`} className="hover:bg-surface-container-lowest transition-colors group">
-                              <td className="px-8 py-4 font-bold text-on-surface font-mono">{order.id}</td>
-                              <td className="px-8 py-4 font-bold text-on-surface">{order.customer}</td>
-                              <td className="px-8 py-4 text-sm text-on-surface-variant font-medium">{order.date}</td>
-                              <td className="px-8 py-4">
-                                 <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${
-                                    order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                                    order.status === 'On the way' ? 'bg-blue-100 text-blue-700' :
-                                    'bg-amber-100 text-amber-700'
-                                 }`}>
-                                    {order.status}
-                                 </span>
-                              </td>
-                              <td className="px-8 py-4 text-right font-bold text-on-surface">{order.amount}</td>
+                     <tbody>
+                        {recentOrders.map(order => (
+                           <tr key={order.id} className="border-b border-outline-variant/10">
+                              <td className="px-8 py-4 font-mono">#{order.id}</td>
+                              <td className="px-8 py-4 font-bold">{order.buyer_name}</td>
+                              <td className="px-8 py-4">{order.status}</td>
+                              <td className="px-8 py-4 text-right font-bold">{order.total_amount} DZD</td>
                            </tr>
                         ))}
                      </tbody>
                   </table>
                </div>
-
-               <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end bg-surface-container-lowest">
-                  <button onClick={() => setShowAllOrdersModal(false)} className="px-6 py-2.5 rounded-xl bg-surface border border-outline-variant/50 font-bold hover:bg-surface-container transition-colors text-on-surface">Close</button>
+               <div className="p-6 text-right">
+                  <button onClick={() => setShowAllOrdersModal(false)} className="px-6 py-2 bg-primary text-white rounded-lg cursor-pointer">Close</button>
                </div>
             </div>
-         </div>
+          </div>
       )}
     </div>
   );

@@ -80,6 +80,15 @@ export const createOrder = (orderData) =>
     body: JSON.stringify(orderData),
   });
 
+// ── Farmer Dashboard & Orders (New) ──────────────────────────────────────────
+export const getFarmerStats = () => request('/api/orders/farmer-stats/');
+
+export const getFarmerOrders = () => request('/api/orders/farmer/orders/');
+
+export const getBuyerStats = () => request('/api/orders/buyer-stats/');
+
+export const getBuyerOrders = () => request('/api/orders/buyer/orders/');
+
 // ── Admin — Categories (CRUD) ─────────────────────────────────────────────────
 export const addCategory = (formData) => {
   const token = getToken();
