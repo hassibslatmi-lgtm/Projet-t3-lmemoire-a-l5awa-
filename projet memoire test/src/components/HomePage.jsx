@@ -50,8 +50,9 @@ export default function HomePage() {
 
   // 3. دالة البحث العامة (عند الضغط على Enter)
   const handleSearch = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== "") {
-      navigate(`/search?search=${searchQuery}`);
+    e.preventDefault();
+    if (searchQuery.trim() !== "") {
+      navigate(`/search?search=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -67,18 +68,17 @@ export default function HomePage() {
             <h2 className="text-primary text-xl font-bold leading-tight tracking-[-0.015em]">AgriGov</h2>
           </div>
           <div className="hidden md:flex flex-col min-w-64">
-            <div className="flex w-full flex-1 items-stretch rounded-xl h-10">
-              <div className="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-xl">
+            <form onSubmit={handleSearch} className="flex w-full flex-1 items-stretch rounded-xl h-10">
+              <button type="submit" className="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-xl hover:bg-primary/10 transition-colors cursor-pointer">
                 <span className="material-symbols-outlined">search</span>
-              </div>
+              </button>
               <input 
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-slate-900 focus:outline-0 focus:ring-1 focus:ring-primary border-none bg-primary/5 h-full placeholder:text-primary/40 px-4 text-base font-normal outline-none" 
                 placeholder="Search for fresh produce..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
               />
-            </div>
+            </form>
           </div>
         </div>
         <div className="flex flex-1 justify-end gap-8 items-center">

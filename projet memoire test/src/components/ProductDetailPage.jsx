@@ -1,50 +1,72 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { getToken } from '../services/api'; // استيراد التوكن من ملفك
+import { getToken } from '../services/api'; 
 
 export default function ProductDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [newReviewRating, setNewReviewRating] = useState(0);
+  
+  // States للتعليق الجديد
+  const [newReviewRating, setNewReviewRating] = useState(5);
   const [newReviewText, setNewReviewText] = useState('');
-  const [reviews, setReviews] = useState([]);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmitReview = () => {
-    if (!newReviewText.trim()) return;
-    const newReview = {
-      id: Date.now(),
-      rating: newReviewRating || 5,
-      text: newReviewText,
-      author: 'Current User',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-    };
-    setReviews([newReview, ...reviews]);
-    setNewReviewText('');
-    setNewReviewRating(0);
+  // دالة جلب بيانات المنتج والتعليقات من الباكاند
+  const fetchProduct = async () => {
+    try {
+      const token = getToken();
+      const config = {
+        headers: { 'Authorization': `Token ${token}` }
+      };
+      // نعيطو لـ API التفاصيل (الرابط اللي سقمناه مقبيل)
+      const res = await axios.get(`http://127.0.0.1:8000/api/products/products/${id}/`, config);
+      setProduct(res.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      setLoading(false);
+    }
   };
 
-  // جلب بيانات المنتج من السيرفر
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const token = getToken();
-        const config = {
-          headers: { 'Authorization': `Token ${token}` }
-        };
-        // نعيطو للـ API تاع تفاصيل المنتج
-        const res = await axios.get(`http://127.0.0.1:8000/api/products/products/${id}/`, config);
-        setProduct(res.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        setLoading(false);
-      }
-    };
     fetchProduct();
   }, [id]);
+
+  // دالة إرسال التعليق (Submit Review)
+  const handleSubmitReview = async () => {
+    if (!newReviewText.trim()) {
+        setErrorMsg("الرجاء كتابة تعليق أولاً.");
+        return;
+    }
+
+    try {
+      const token = getToken();
+      const config = {
+        headers: { 'Authorization': `Token ${token}` }
+      };
+
+      const data = {
+        rating: newReviewRating,
+        comment: newReviewText // 'comment' هو الاسم اللي يستناه Django
+      };
+
+      await axios.post(`http://127.0.0.1:8000/api/products/products/${id}/review/`, data, config);
+      
+      // إذا نجح: فرغ الفورم وعاود جلب البيانات باش يبان التعليق
+      setNewReviewText('');
+      setNewReviewRating(5);
+      setErrorMsg('');
+      fetchProduct(); 
+      alert("تمت إضافة تقييمك بنجاح!");
+
+    } catch (error) {
+      const message = error.response?.data?.error || "حدث خطأ أثناء إرسال التقييم.";
+      setErrorMsg(message);
+    }
+  };
 
   if (loading) return <div className="p-20 text-center font-bold">Loading product details...</div>;
   if (!product) return <div className="p-20 text-center font-bold text-red-500">Product not found!</div>;
@@ -95,7 +117,6 @@ export default function ProductDetailPage() {
 
         {/* Product Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-          {/* Product Image */}
           <div className="flex flex-col gap-4">
             <div 
               className="w-full aspect-[4/3] bg-center bg-no-repeat bg-cover rounded-xl shadow-sm border border-primary/5 bg-slate-100" 
@@ -103,18 +124,15 @@ export default function ProductDetailPage() {
             ></div>
           </div>
 
-          {/* Product Info */}
           <div className="flex flex-col">
             <span className="text-primary font-bold tracking-wider uppercase text-xs mb-2">Government Verified</span>
             <h1 className="text-4xl font-black text-slate-900 mb-2 leading-tight">{product.name}</h1>
             
             <div className="flex items-center gap-4 mb-6">
               <div className="flex text-amber-500">
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                {[1,2,3,4,5].map(i => (
+                    <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                ))}
               </div>
               <span className="text-slate-500 text-sm font-medium">Verified Product</span>
             </div>
@@ -145,10 +163,9 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            {/* Controls */}
             <div className="flex flex-wrap gap-4 items-center">
               <button onClick={() => navigate('/payment/' + id)} className="flex-1 min-w-[200px] bg-primary text-white font-bold py-3.5 px-8 rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
-                 Place Order
+                  Place Order
               </button>
               <button className="size-12 flex items-center justify-center bg-rose-50 border border-rose-100 rounded-xl text-rose-500 hover:bg-rose-100 transition-colors">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
@@ -157,17 +174,21 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Reviews Section (Static UI as per design) */}
+        {/* ---------------- REVIEWS SECTION (DYNAMIC) ---------------- */}
         <div className="mb-20 pt-8 border-t border-slate-200">
           <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
           <div className="flex flex-col lg:flex-row gap-12">
+            
+            {/* Average Rating Display */}
             <div className="w-full lg:w-64 flex flex-col gap-6 shrink-0">
               <div className="flex flex-col">
-                <p className="text-5xl font-black text-slate-900">5.0</p>
+                <p className="text-5xl font-black text-slate-900">
+                    {product.reviews?.length > 0 ? (product.reviews.reduce((acc, item) => acc + item.rating, 0) / product.reviews.length).toFixed(1) : "0.0"}
+                </p>
                 <div className="flex text-amber-500 mb-1 mt-2">
-                   {[1,2,3,4,5].map(i => <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>)}
+                    {[1,2,3,4,5].map(i => <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>)}
                 </div>
-                <p className="text-slate-500 text-sm font-medium">Verified Reviews</p>
+                <p className="text-slate-500 text-sm font-medium">{product.reviews?.length || 0} Verified Reviews</p>
               </div>
             </div>
 
@@ -175,20 +196,21 @@ export default function ProductDetailPage() {
               {/* Add Review Form */}
               <div className="bg-white p-6 rounded-xl border border-slate-200 mb-4 shadow-sm">
                 <h3 className="font-bold text-lg mb-4">Write a Review</h3>
+                {errorMsg && <p className="text-red-500 text-xs mb-4 bg-red-50 p-2 rounded-lg border border-red-100 font-bold">{errorMsg}</p>}
+                
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2 relative">
                     <label className="text-sm font-bold text-slate-600">Your Rating</label>
-                    <div className="flex text-amber-500 gap-1 absolute top-7 cursor-pointer">
+                    <div className="flex text-amber-500 gap-1 cursor-pointer">
                        {[1, 2, 3, 4, 5].map((star) => (
                          <span 
-                           key={star} 
-                           onClick={() => setNewReviewRating(star)} 
-                           className="material-symbols-outlined text-[24px]" 
-                           style={{ fontVariationSettings: newReviewRating >= star ? "'FILL' 1" : "'FILL' 0" }}
+                            key={star} 
+                            onClick={() => setNewReviewRating(star)} 
+                            className="material-symbols-outlined text-[24px]" 
+                            style={{ fontVariationSettings: newReviewRating >= star ? "'FILL' 1" : "'FILL' 0" }}
                          >star</span>
                        ))}
                     </div>
-                    <div className="h-8"></div>
                   </div>
                   <textarea 
                     className="w-full h-24 rounded-xl border border-slate-200 p-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors text-sm" 
@@ -207,27 +229,29 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Render Reviews List */}
+              {/* Reviews List from Backend */}
               <div className="flex flex-col gap-4">
-                {reviews.map(review => (
+                {product.reviews && product.reviews.map(review => (
                   <div key={review.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
                     <div className="flex items-center justify-between">
-                      <p className="font-bold text-slate-800">{review.author}</p>
-                      <p className="text-xs font-medium text-slate-500">{review.date}</p>
+                      <p className="font-bold text-slate-800">{review.buyer_name}</p>
+                      <p className="text-xs font-medium text-slate-500">{new Date(review.created_at).toLocaleDateString()}</p>
                     </div>
                     <div className="flex text-amber-500 gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                          <span 
-                           key={star} 
-                           className="material-symbols-outlined text-[16px]" 
-                           style={{ fontVariationSettings: review.rating >= star ? "'FILL' 1" : "'FILL' 0" }}
+                            key={star} 
+                            className="material-symbols-outlined text-[16px]" 
+                            style={{ fontVariationSettings: review.rating >= star ? "'FILL' 1" : "'FILL' 0" }}
                          >star</span>
                       ))}
                     </div>
-                    <p className="text-slate-600 text-sm mt-2">{review.text}</p>
+                    <p className="text-slate-600 text-sm mt-2">{review.comment}</p>
                   </div>
                 ))}
-                {reviews.length === 0 && <p className="text-slate-500 text-sm py-4">No reviews yet. Be the first to add one!</p>}
+                {(!product.reviews || product.reviews.length === 0) && (
+                  <p className="text-slate-500 text-sm py-4">No reviews yet. Be the first to add one!</p>
+                )}
               </div>
             </div>
           </div>
@@ -242,7 +266,7 @@ export default function ProductDetailPage() {
               <div className="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
                 <span className="material-symbols-outlined">agriculture</span>
               </div>
-              <h2 className="text-primary text-xl font-bold leading-tight">AgriGov</h2>
+              <h2 className="text-primary text-xl font-bold">AgriGov</h2>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed mb-6 font-medium">
               The official platform for government-verified agricultural trade. Empowering farmers and feeding nations since 2026.
