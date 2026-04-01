@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // استيراد الدوال والمساعدات من ملف api.js الخاص بك
-import { getCategories, getToken } from '../services/api'; 
+import { getCategories, getToken, getRole } from '../services/api'; 
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -56,6 +56,19 @@ export default function HomePage() {
     }
   };
 
+  const handlePersonaClick = () => {
+    const role = getRole();
+    if (role === 'ministry') {
+      navigate('/admin');
+    } else if (role === 'farmer') {
+      navigate('/farmer/dashboard');
+    } else if (role === 'buyer') {
+      navigate('/buyer');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="bg-[#f6f7f6] font-sans text-slate-900 antialiased min-h-screen flex flex-col">
       {/* --- Header --- */}
@@ -83,11 +96,11 @@ export default function HomePage() {
         </div>
         <div className="flex flex-1 justify-end gap-8 items-center">
           <nav className="hidden lg:flex items-center gap-8">
-            <button onClick={() => navigate('/search')} className="text-slate-700 text-sm font-medium hover:text-primary transition-colors">Shop</button>
+            <button onClick={() => navigate('/shop')} className="text-slate-700 text-sm font-medium hover:text-primary transition-colors">Shop</button>
             <a className="text-slate-700 text-sm font-medium hover:text-primary transition-colors" href="#categories">Categories</a>
           </nav>
           <div className="flex gap-3">
-            <button onClick={() => navigate('/login')} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+            <button onClick={handlePersonaClick} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
               <span className="material-symbols-outlined">person</span>
             </button>
           </div>
@@ -113,7 +126,7 @@ export default function HomePage() {
                 Connecting you directly with trusted local farmers for the freshest, certified organic produce.
               </p>
               <div className="mt-4">
-                <button onClick={() => navigate('/search')} className="bg-primary hover:bg-primary/90 text-white px-10 py-4 rounded-xl text-lg font-bold transition-all shadow-lg hover:shadow-primary/20">
+                <button onClick={() => navigate('/shop')} className="bg-primary hover:bg-primary/90 text-white px-10 py-4 rounded-xl text-lg font-bold transition-all shadow-lg hover:shadow-primary/20">
                   Shop Now
                 </button>
               </div>
@@ -159,7 +172,7 @@ export default function HomePage() {
               <h2 className="text-3xl font-black tracking-tight text-slate-800">Browse Categories</h2>
               <p className="text-slate-500">Explore our wide selection of agricultural goods</p>
             </div>
-            <button onClick={() => navigate('/search')} className="text-primary font-bold hover:underline">View All</button>
+            <button onClick={() => navigate('/shop')} className="text-primary font-bold hover:underline">View All</button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {categories.map((cat) => (
@@ -191,7 +204,7 @@ export default function HomePage() {
               <h2 className="text-3xl font-black tracking-tight text-slate-800">Best Rating Products</h2>
               <p className="text-slate-500">Verified top-tier products chosen by our community</p>
             </div>
-            <button onClick={() => navigate('/search')} className="text-primary font-bold hover:underline">See All</button>
+            <button onClick={() => navigate('/shop')} className="text-primary font-bold hover:underline">See All</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (

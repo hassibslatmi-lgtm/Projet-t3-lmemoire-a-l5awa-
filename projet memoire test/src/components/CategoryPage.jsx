@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getProductsByCategory, getCategoryDetail } from '../services/api'; 
+import { getProductsByCategory, getCategoryDetail, getRole } from '../services/api'; 
 
 export default function CategoryPage() {
   const navigate = useNavigate();
@@ -38,6 +38,19 @@ export default function CategoryPage() {
     }
   }, [categoryName]);
 
+  const handlePersonaClick = () => {
+    const role = getRole();
+    if (role === 'ministry') {
+      navigate('/admin');
+    } else if (role === 'farmer') {
+      navigate('/farmer/dashboard');
+    } else if (role === 'buyer') {
+      navigate('/buyer');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="bg-[#f6f7f6] font-sans text-slate-900 antialiased min-h-screen flex flex-col">
       {/* Header */}
@@ -50,8 +63,11 @@ export default function CategoryPage() {
             <h2 className="text-primary text-xl font-bold leading-tight tracking-tight">AgriGov</h2>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-6 items-center">
             <button onClick={() => navigate('/home')} className="text-sm font-bold text-slate-600 hover:text-primary">Back to Home</button>
+            <button onClick={handlePersonaClick} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+              <span className="material-symbols-outlined">person</span>
+            </button>
         </div>
       </header>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { request, createOrder } from '../services/api'; // استيراد الدوال التي أضفناها لـ api.js
+import { request, createOrder, getRole } from '../services/api'; // استيراد الدوال التي أضفناها لـ api.js
 
 export default function PaymentPage() {
   const navigate = useNavigate();
@@ -30,6 +30,19 @@ export default function PaymentPage() {
     };
     if (productId) fetchProductData();
   }, [productId]);
+
+  const handlePersonaClick = () => {
+    const role = getRole();
+    if (role === 'ministry') {
+      navigate('/admin');
+    } else if (role === 'farmer') {
+      navigate('/farmer/dashboard');
+    } else if (role === 'buyer') {
+      navigate('/buyer');
+    } else {
+      navigate('/login');
+    }
+  };
 
   // الحسابات
   const subtotal = product ? (quantity * product.official_price) : 0;
@@ -87,8 +100,11 @@ export default function PaymentPage() {
           </div>
         </div>
         <div className="flex flex-1 justify-end gap-8 items-center">
-          <div className="flex gap-3">
-            <button onClick={() => navigate(-1)} className="text-sm font-bold text-slate-500">Back</button>
+          <div className="flex gap-4 items-center">
+            <button onClick={() => navigate(-1)} className="text-sm font-bold text-slate-500 hover:text-primary transition-colors">Back</button>
+            <button onClick={handlePersonaClick} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+              <span className="material-symbols-outlined">person</span>
+            </button>
           </div>
         </div>
       </header>

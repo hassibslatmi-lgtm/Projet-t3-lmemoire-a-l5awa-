@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { getToken } from '../services/api'; 
+import { getToken, getRole } from '../services/api'; 
 
 export default function ProductDetailPage() {
   const navigate = useNavigate();
@@ -34,6 +34,19 @@ export default function ProductDetailPage() {
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  const handlePersonaClick = () => {
+    const role = getRole();
+    if (role === 'ministry') {
+      navigate('/admin');
+    } else if (role === 'farmer') {
+      navigate('/farmer/dashboard');
+    } else if (role === 'buyer') {
+      navigate('/buyer');
+    } else {
+      navigate('/login');
+    }
+  };
 
   // دالة إرسال التعليق (Submit Review)
   const handleSubmitReview = async () => {
@@ -100,7 +113,7 @@ export default function ProductDetailPage() {
             <a className="text-primary text-sm font-medium transition-colors cursor-pointer" onClick={() => navigate('/home')}>Categories</a>
           </nav>
           <div className="flex gap-3">
-            <button onClick={() => navigate('/login')} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+            <button onClick={handlePersonaClick} className="flex items-center justify-center rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
               <span className="material-symbols-outlined">person</span>
             </button>
           </div>
