@@ -64,6 +64,8 @@ export default function HomePage() {
       navigate('/farmer/dashboard');
     } else if (role === 'buyer') {
       navigate('/buyer');
+    } else if (role === 'transporter') {
+      navigate('/transporter/dashboard');
     } else {
       navigate('/login');
     }

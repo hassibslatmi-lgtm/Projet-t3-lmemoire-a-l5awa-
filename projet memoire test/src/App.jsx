@@ -12,6 +12,11 @@ import ProductDetailPage from './components/ProductDetailPage';
 import BuyerDashboard from './components/BuyerDashboard';
 import PaymentPage from './components/PaymentPage';
 import ShopPage from './components/ShopPage';
+import TransporterDashboard from './components/TransporterDashboard';
+import TransporterManageProfile from './components/TransporterManageProfile';
+import TransporterMissions from './components/TransporterMissions';
+import TransporterRequests from './components/TransporterRequests';
+
 
 function App() {
   return (
@@ -32,6 +37,10 @@ function App() {
         <Route path="/payment/:productId" element={<PaymentPage />} />
         <Route path="/buyer" element={<BuyerDashboard />} />
         <Route path="/shop" element={<ShopPage />} />
+        <Route path="/transporter/dashboard" element={<TransporterDashboard />} />
+        <Route path="/transporter/profile" element={<TransporterManageProfile />} />
+        <Route path="/transporter/requests" element={<TransporterRequests />} />
+        <Route path="/transporter/missions" element={<TransporterMissions />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

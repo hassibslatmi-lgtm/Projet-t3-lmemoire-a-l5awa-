@@ -32,6 +32,9 @@ export default function LoginPage() {
         // التعديل الجديد: إذا كان فلاح يروح ديريكت للبروفايل باش تـتيسطي
         navigate('/farmer/products');
       } 
+      else if (data.role === 'transporter') {
+        navigate('/transporter/dashboard');
+      }
       else {
         // الأنواع الأخرى (مشتري أو ناقل مثلاً)
         navigate('/home');
