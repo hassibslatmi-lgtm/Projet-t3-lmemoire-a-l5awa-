@@ -9,6 +9,7 @@ export default function TransporterRequests() {
   const [showHistory, setShowHistory] = useState(false);
   const [historyTab, setHistoryTab] = useState('accepted');
   const [activeFilter, setActiveFilter] = useState('Newest');
+  const [revealedContacts, setRevealedContacts] = useState({});
 
   useEffect(() => {
     if (location.state?.openHistoryModal) {
@@ -30,6 +31,7 @@ export default function TransporterRequests() {
       pickupDistance: 2.4, // total distance representation
       delivery: 'Central Silo',
       deliveryDistance: 10.0,
+      phone: '+213 555 12 34 56',
       image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=600',
       dateAdded: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
     },
@@ -43,6 +45,7 @@ export default function TransporterRequests() {
       pickupDistance: 5.8,
       delivery: 'Metro Market Terminal',
       deliveryDistance: 22.5,
+      phone: '+213 666 98 76 54',
       image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&q=80&w=600',
       dateAdded: new Date(Date.now() - 1000 * 60 * 60 * 5) // 5 hours ago
     },
@@ -56,6 +59,7 @@ export default function TransporterRequests() {
       pickupDistance: 1.2,
       delivery: 'Hilltop Cooperative',
       deliveryDistance: 14.8,
+      phone: '+213 777 45 67 89',
       image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&q=80&w=600', // Milk image
       dateAdded: new Date(Date.now() - 1000 * 60 * 15) // 15 mins ago
     }
@@ -229,7 +233,22 @@ export default function TransporterRequests() {
                         <span className="material-symbols-outlined text-lg">check_circle</span>
                         Accept Mission
                       </button>
-                      <button className="px-8 border border-red-200 text-red-600 rounded-xl h-11 font-bold text-sm hover:bg-red-50 hover:border-red-300 transition-colors">
+
+                      {revealedContacts[mission.id] ? (
+                        <div className="flex-1 bg-green-50 text-green-700 border border-green-200 rounded-xl h-11 font-bold text-sm flex items-center justify-center gap-2">
+                          <span className="material-symbols-outlined text-lg">call</span>
+                          {mission.phone || '+213 000 00 00 00'}
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setRevealedContacts(prev => ({ ...prev, [mission.id]: true }))}
+                          className="flex-1 border border-primary/30 text-primary rounded-xl h-11 font-bold text-sm hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                          <span className="material-symbols-outlined text-lg">contact_page</span>
+                          Contact me
+                        </button>
+                      )}
+
+                      <button className="px-6 border border-red-200 text-red-600 rounded-xl h-11 font-bold text-sm hover:bg-red-50 hover:border-red-300 transition-colors hidden xl:block">
                         Reject
                       </button>
                     </div>

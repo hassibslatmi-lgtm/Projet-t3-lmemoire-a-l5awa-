@@ -10,6 +10,7 @@ export default function TransporterMissions() {
   
   // Statuses: 'placed', 'on_way', 'delivered'
   const [currentStatus, setCurrentStatus] = useState('placed');
+  const [transportFee, setTransportFee] = useState(mission?.price || '');
 
   const handleLogout = () => {
     localStorage.removeItem('agrigov_token');
@@ -156,6 +157,22 @@ export default function TransporterMissions() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Transportation Fee Section */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col gap-2">
+                    <h3 className="text-slate-900 font-bold mb-2 text-lg">Agreed Transportation Fee</h3>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-lg material-symbols-outlined">payments</span>
+                      <input 
+                        type="number" 
+                        placeholder="Enter agreed fee..." 
+                        value={transportFee}
+                        onChange={(e) => setTransportFee(e.target.value)}
+                        className="w-full bg-surface-container border border-outline-variant/50 rounded-xl pl-12 pr-4 py-4 text-lg font-black text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white outline-none transition-all"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">Please enter the delivery fee confirmed with the buyer.</p>
                   </div>
 
                   {/* Status Selection Section */}
