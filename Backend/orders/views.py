@@ -7,19 +7,22 @@ from django.http import HttpResponse
 from django.db.models import Sum
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from .models import Order, OrderItem
 from .serializers import OrderSerializer
 from products.models import Product, OfficialPrice
 
-# ---------------------------------------------------------
-# 1. إنشاء الطلب (Buyer)
-# ---------------------------------------------------------
+# =========================================================
+# 1. إنشاء الطلب (Buyer) - يدفع مباشرة ويظهر في Dashboard
+# =========================================================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def place_order(request):
+    """
+    معدل: الطلب يُنشأ مباشرة بحالة PAID و IS_PAID=True 
+    """
     data = request.data
     buyer = request.user
     
@@ -34,14 +37,14 @@ def place_order(request):
     product = get_object_or_404(Product, id=product_id)
     farmer = product.farmer
     
-    # جلب السعر الرسمي للمنتج
+    # جلب السعر الرسمي
     price_entry = OfficialPrice.objects.filter(product_name=product.name).first()
     if not price_entry:
         return Response({"error": f"Price for {product.name} not found"}, status=400)
     
     total_price = int(price_entry.price * quantity)
 
-    # إنشاء الطلب وحفظ عنوان المزرعة في pickup_address
+    # التعديل: هنا جعلنا الطلب يبدأ مباشرة كمدفوع PAID
     order = Order.objects.create(
         buyer=buyer,
         farmer=farmer,
@@ -49,8 +52,8 @@ def place_order(request):
         shipping_address=address,
         phone_number=phone,
         total_amount=total_price,
-        status='pending',
-        is_paid=False
+        status='paid',   # يبدأ مباشرة paid
+        is_paid=True     # True فوراً لتحديث الإحصائيات
     )
 
     OrderItem.objects.create(
@@ -60,7 +63,7 @@ def place_order(request):
         price_at_purchase=price_entry.price
     )
 
-    # التكامل مع Chargily
+    # نطلب رابط الدفع من Chargily (اختياري للعرض فقط لأننا فعلنا الطلب محلياً)
     url = f"{settings.CHARGILY_BASE_URL}/checkouts"
     headers = {
         "Authorization": f"Bearer {settings.CHARGILY_SECRET_KEY}",
@@ -69,7 +72,7 @@ def place_order(request):
     payload = {
         "amount": total_price,
         "currency": "dzd",
-        "success_url": "http://localhost:3000/buyer/orders", 
+        "success_url": "http://localhost:3000/buyer/orders/success", 
         "metadata": {"order_id": str(order.id)}
     }
     
@@ -79,36 +82,39 @@ def place_order(request):
             res_data = resp.json()
             order.chargily_invoice_id = res_data.get('id')
             order.save()
-            return Response({"checkout_url": res_data.get('checkout_url'), "order_id": order.id}, status=201)
-    except Exception as e:
-        print(f"Chargily Connection Error: {e}")
+            return Response({
+                "checkout_url": res_data.get('checkout_url'), 
+                "order_id": order.id,
+                "message": "Order created and PAID successfully"
+            }, status=201)
+    except:
+        pass
 
-    return Response({"message": "Order created locally", "order_id": order.id}, status=201)
+    return Response({"message": "Order created as PAID locally", "order_id": order.id}, status=201)
 
 
-# ---------------------------------------------------------
-# 2. تحويل الطلب لـ Processing (Farmer)
-# ---------------------------------------------------------
+# =========================================================
+# 2. Webhook (احتياطي فقط)
+# =========================================================
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def chargily_webhook(request):
+    return HttpResponse(status=200)
+
+
+# =========================================================
+# 3. تحكم الفلاح (Farmer Views)
+# =========================================================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_order_processing(request, order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-    except Order.DoesNotExist:
-        return Response({"error": f"الطلب رقم {order_id} غير موجود"}, status=404)
-
-    if order.farmer != request.user:
-        return Response({"error": "ليس لديك صلاحية لهذا الطلب"}, status=403)
-
-    if not order.is_paid:
-        return Response({"error": "المشتري لم يدفع بعد"}, status=400)
-        
+    """الفلاح يجهز السلعة للنقل"""
+    order = get_object_or_404(Order, id=order_id, farmer=request.user)
+    # لا نحتاج للتأكد من الدفع لأنه PAID أصلاً
     order.status = 'processing' 
     order.save()
-    return Response({
-        "message": "تم تحديث الحالة، الطلب يظهر الآن للناقلين", 
-        "status": order.status
-    })
+    return Response({"message": "Order is ready for Transporter"})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -117,13 +123,28 @@ def farmer_orders_list(request):
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def farmer_dashboard_stats(request):
+    from products.models import Product
+    user = request.user
+    # سيحسب الأموال فوراً لأن is_paid=True
+    revenue = Order.objects.filter(farmer=user, is_paid=True).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    stats = {
+        "total_products": Product.objects.filter(farmer=user).count(),
+        "total_orders": Order.objects.filter(farmer=user).count(),
+        "total_revenue": float(revenue)
+    }
+    return Response(stats)
 
-# ---------------------------------------------------------
-# 3. الناقل (Transporter)
-# ---------------------------------------------------------
+
+# =========================================================
+# 4. تحكم الناقل (Transporter Views)
+# =========================================================
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def available_missions(request):
+    """الناقل يرى الطلبات الجاهزة للنقل فقط"""
     missions = Order.objects.filter(status='processing', transporter__isnull=True).order_by('-created_at')
     serializer = OrderSerializer(missions, many=True)
     return Response(serializer.data)
@@ -132,64 +153,32 @@ def available_missions(request):
 @permission_classes([IsAuthenticated])
 def accept_mission(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    
     if order.transporter:
-        return Response({"error": "المهمة مأخوذة بالفعل"}, status=400)
-    
-    if order.status != 'processing':
-        return Response({"error": "الفلاح لم يجهز الطلب بعد"}, status=400)
+        return Response({"error": "Already accepted by another transporter"}, status=400)
     
     order.transporter = request.user
     order.status = 'shipped' 
     order.save()
-    return Response({"message": "تم قبول المهمة بنجاح", "status": order.status})
+    return Response({"message": "Mission accepted", "status": order.status})
 
 
-# ---------------------------------------------------------
-# 4. المشتري (Confirmation)
-# ---------------------------------------------------------
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def mark_as_delivered(request, order_id):
-    order = get_object_or_404(Order, id=order_id, buyer=request.user)
-    if order.status != 'shipped':
-        return Response({"error": "الطلب لم يشحن بعد"}, status=400)
-    order.status = 'delivered' 
-    order.save()
-    return Response({"message": "تم تأكيد الاستلام بنجاح", "status": order.status})
-
-
-# ---------------------------------------------------------
-# 5. Webhook & Stats
-# ---------------------------------------------------------
-@csrf_exempt
-@api_view(['POST'])
-def chargily_webhook(request):
-    try:
-        data = json.loads(request.body)
-        if data.get('type') == 'checkout.paid':
-            order_id = data.get('data', {}).get('metadata', {}).get('order_id')
-            if order_id:
-                Order.objects.filter(id=order_id).update(is_paid=True, status='paid')
-                return HttpResponse(status=200)
-    except: pass
-    return HttpResponse(status=200)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def farmer_dashboard_stats(request):
-    from products.models import Product
-    user = request.user
-    stats = {
-        "total_products": Product.objects.filter(farmer=user).count(),
-        "total_orders": Order.objects.filter(farmer=user).count(),
-        "total_revenue": float(Order.objects.filter(farmer=user, is_paid=True).aggregate(Sum('total_amount'))['total_amount__sum'] or 0)
-    }
-    return Response(stats)
-
+# =========================================================
+# 5. تحكم المشتري (Stats)
+# =========================================================
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def buyer_dashboard_stats(request):
     user = request.user
     spent = Order.objects.filter(buyer=user, is_paid=True).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    return Response({"total_orders": Order.objects.filter(buyer=user).count(), "total_spent": float(spent)})
+    return Response({
+        "total_orders": Order.objects.filter(buyer=user).count(), 
+        "total_spent": float(spent)
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_as_delivered(request, order_id):
+    order = get_object_or_404(Order, id=order_id, buyer=request.user)
+    order.status = 'delivered' 
+    order.save()
+    return Response({"message": "Delivery confirmed"})

@@ -16,7 +16,7 @@ from orders.models import OrderItem
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def list_categories(request):
+def list_categories(request):  #hadi tjib la list ta3 kol category bch l buyer ykhayr
     categories = Category.objects.all().order_by('-created_at')
     serializer = CategorySerializer(categories, many=True, context={'request': request})
     return Response(serializer.data)
@@ -30,7 +30,7 @@ def get_category(request, pk):
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
-def add_category(request):
+def add_category(request):  #hadi tkhali ghir l'admin ydir add category
     serializer = CategorySerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         serializer.save()
@@ -49,7 +49,7 @@ def update_category(request, pk):
 
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
-def delete_category(request, pk):
+def delete_category(request, pk):  #hadi tkhali l'admin ydir delete category bsh ida kant deja m3mra hadik la category tji error
     category = get_object_or_404(Category, pk=pk)
     try:
         category.delete()
@@ -65,8 +65,8 @@ def delete_category(request, pk):
 # ==========================================
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
-def list_official_prices(request):
+@permission_classes([AllowAny])  
+def list_official_prices(request):  #hadi la list ta3 officiel price bch l buyer ychouf l price
     prices = OfficialPrice.objects.all().order_by('-date_set') 
     serializer = OfficialPriceSerializer(prices, many=True, context={'request': request})
     return Response(serializer.data)
@@ -74,7 +74,7 @@ def list_official_prices(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAdminUser])
-def add_official_price(request):
+def add_official_price(request): #hna lazm l'admin hwa li ydir add price
     serializer = OfficialPriceSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         serializer.save()
@@ -108,9 +108,8 @@ def get_official_price(request, pk):
     return Response(serializer.data)
 
 
-# ==========================================
-# --- 3. Farmer Product Views (منتجات الفلاح) ---
-# ==========================================
+
+# --- 3. Farmer Product Views 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
@@ -130,7 +129,7 @@ def add_product(request):
         return Response({'error': 'Only farmers can add products'}, status=status.HTTP_403_FORBIDDEN)
     
     product_name = request.data.get('name')
-    if not OfficialPrice.objects.filter(product_name=product_name).exists():
+    if not OfficialPrice.objects.filter(product_name=product_name).exists():  #my9darch ydir add l product mkanch fl official price
         return Response({
             'error': f'المنتج "{product_name}" غير متاح. يرجى الاختيار من القائمة الرسمية.'
         }, status=status.HTTP_400_BAD_REQUEST)
@@ -167,9 +166,8 @@ def delete_product(request, pk):
     return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
-# ==========================================
+
 # --- 4. Buyer Views (البحث، التفاصيل، والتقييم) ---
-# ==========================================
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])

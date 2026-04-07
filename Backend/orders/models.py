@@ -1,34 +1,49 @@
-from rest_framework import serializers
-from .models import Order, OrderItem
-from products.models import Product
+from django.db import models
+from django.conf import settings
+# ركز هنا: نحينا import المباشر تاع Product باش نتفاداو الـ Circular Import
 
-class OrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.ReadOnlyField(source='product.name')
-    product_image = serializers.SerializerMethodField()
+class Order(models.Model):
+    STATUS_CHOICES = (
+       # ('pending', 'قيد الانتظار'),
+        ('paid', 'مدفوع - جاهز للنقل'), 
+        ('processing', 'قيد التحضير'),
+        ('shipped', 'تم الشحن'),
+        ('delivered', 'تم الاستلام'),
+        ('cancelled', 'ملغى'),
+    )
+
+    payment_method = models.CharField(max_length=20, default='online')
+    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders_made')
+    farmer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders_received')
     
-    class Meta:
-        model = OrderItem
-        fields = ['id', 'product', 'product_name', 'product_image', 'quantity', 'price_at_purchase']
-
-    def get_product_image(self, obj):
-        if obj.product.image:
-            return obj.product.image.url
-        return None
-
-class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, read_only=True)
-    buyer_name = serializers.ReadOnlyField(source='buyer.full_name')
-    farmer_name = serializers.ReadOnlyField(source='farmer.full_name')
-    farmer_phone = serializers.ReadOnlyField(source='farmer.phone')
+    # حقل الناقل (Transporter)
+    transporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='deliveries'
+    )
     
-    # هنا "المفتاح": نجبدو الموقع من البروفايل تاع الفلاح
-    # تأكد أن اسم الحقل في موديل User هو 'farm_location'
-    farmer_address = serializers.ReadOnlyField(source='farmer.farm_location')
+    pickup_address = models.TextField(null=True, blank=True)
+    shipping_address = models.TextField() 
+    phone_number = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='paid')
+    is_paid = models.BooleanField(default=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    chargily_invoice_id = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        model = Order
-        fields = [
-            'id', 'buyer', 'buyer_name', 'farmer', 'farmer_name', 'farmer_phone',
-            'farmer_address', 'shipping_address', 'phone_number', 
-            'status', 'is_paid', 'total_amount', 'items', 'created_at'
-        ]
+    def __str__(self):
+        return f"Order #{self.id} - {self.status}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    # التعديل هنا: استعملنا النص 'products.Product' بدل الـ Import المباشر
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.product.name} (x{self.quantity}) in Order #{self.order.id}"

@@ -40,7 +40,7 @@ class OfficialPrice(models.Model):
         return f"{self.product_name} - {self.price} DA"
 
     # دالة سحرية: في كل مرة نحفظ (Save) السعر، يسجل نسخة في التاريخ تلقائياً
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):  #hadi la function hia li tkhalina n7afdou 3la price history
         is_new = self.pk is None
         # نحفظ السعر الحالي أولاً
         super().save(*args, **kwargs)
