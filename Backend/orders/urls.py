@@ -12,4 +12,5 @@ urlpatterns = [
     path('transporter/available-missions/', views.available_missions, name='available-missions'),
     path('transporter/accept-mission/<int:order_id>/', views.accept_mission, name='accept-mission'),
     path('transporter/reject-mission/<int:order_id>/', views.reject_mission, name='reject-mission'),
+    path('transporter/mark-delivered/<int:order_id>/', views.transporter_mark_delivered, name='transporter-mark-delivered'),
 ]

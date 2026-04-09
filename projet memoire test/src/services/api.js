@@ -166,3 +166,17 @@ export const updateFarmerProduct = (id, formData) => {
 
 export const deleteFarmerProduct = (id) => 
   request(`/api/products/farmer/products/${id}/delete/`, { method: 'DELETE' });
+
+
+// ── Transporter Endpoints ─────────────────────────────────────────────────────
+export const getAvailableMissions = () => 
+  request('/api/orders/transporter/available-missions/');
+
+export const acceptMission = (id) => 
+  request(`/api/orders/transporter/accept-mission/${id}/`, { method: 'POST' });
+
+export const markOrderAsDelivered = (id) => 
+  request(`/api/orders/transporter/mark-delivered/${id}/`, { method: 'POST' });
+
+export const rejectMission = (id) => 
+  request(`/api/orders/transporter/reject-mission/${id}/`, { method: 'POST' });

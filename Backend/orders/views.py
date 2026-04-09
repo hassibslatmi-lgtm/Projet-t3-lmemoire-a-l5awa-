@@ -191,6 +191,23 @@ def mark_as_delivered(request, order_id):
     return Response({"message": "Delivery confirmed"})
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def transporter_mark_delivered(request, order_id):
+    """الناقل يؤكد أنه قام بتسليم الطلب للمشتري"""
+    # نتأكد أن الذي يغير الحالة هو نفس الناقل الذي قبل المهمة
+    order = get_object_or_404(Order, id=order_id, transporter=request.user)
+    
+    if order.status != 'shipped':
+        return Response({"error": "يمكنك فقط تأكيد استلام الطلبات التي هي في حالة 'تم الشحن'"}, status=400)
+    
+    order.status = 'delivered'
+    order.save()
+    return Response({
+        "message": "تم تحديث حالة الطلب إلى 'تم الاستلام' بنجاح",
+        "status": order.status
+    })
+
 # =========================================================
 # 5. Webhook
 # =========================================================
