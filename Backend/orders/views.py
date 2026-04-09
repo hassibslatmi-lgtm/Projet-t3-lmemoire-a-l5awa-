@@ -15,14 +15,11 @@ from .serializers import OrderSerializer
 from products.models import Product, OfficialPrice
 
 # =========================================================
-# 1. إنشاء الطلب (Buyer) - يدفع مباشرة ويظهر في Dashboard
+# 1. إنشاء الطلب (المشتري)
 # =========================================================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def place_order(request):
-    """
-    معدل: الطلب يُنشأ مباشرة بحالة PAID و IS_PAID=True 
-    """
     data = request.data
     buyer = request.user
     
@@ -35,25 +32,28 @@ def place_order(request):
         return Response({"error": "Address and phone are required"}, status=400)
 
     product = get_object_or_404(Product, id=product_id)
-    farmer = product.farmer
+    farmer_user = product.farmer 
     
-    # جلب السعر الرسمي
     price_entry = OfficialPrice.objects.filter(product_name=product.name).first()
     if not price_entry:
         return Response({"error": f"Price for {product.name} not found"}, status=400)
     
     total_price = int(price_entry.price * quantity)
 
-    # التعديل: هنا جعلنا الطلب يبدأ مباشرة كمدفوع PAID
+    try:
+        farm_loc = farmer_user.farmer.farm_location
+    except:
+        farm_loc = "Site Web"
+
     order = Order.objects.create(
         buyer=buyer,
-        farmer=farmer,
-        pickup_address=getattr(farmer, 'farm_location', 'No Address Set'),
+        farmer=farmer_user,
+        pickup_address=farm_loc,
         shipping_address=address,
         phone_number=phone,
         total_amount=total_price,
-        status='paid',   # يبدأ مباشرة paid
-        is_paid=True     # True فوراً لتحديث الإحصائيات
+        status='paid',   
+        is_paid=True     
     )
 
     OrderItem.objects.create(
@@ -63,7 +63,6 @@ def place_order(request):
         price_at_purchase=price_entry.price
     )
 
-    # نطلب رابط الدفع من Chargily (اختياري للعرض فقط لأننا فعلنا الطلب محلياً)
     url = f"{settings.CHARGILY_BASE_URL}/checkouts"
     headers = {
         "Authorization": f"Bearer {settings.CHARGILY_SECRET_KEY}",
@@ -94,27 +93,26 @@ def place_order(request):
 
 
 # =========================================================
-# 2. Webhook (احتياطي فقط)
-# =========================================================
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def chargily_webhook(request):
-    return HttpResponse(status=200)
-
-
-# =========================================================
-# 3. تحكم الفلاح (Farmer Views)
+# 2. تحكم الفلاح
 # =========================================================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_order_processing(request, order_id):
-    """الفلاح يجهز السلعة للنقل"""
     order = get_object_or_404(Order, id=order_id, farmer=request.user)
-    # لا نحتاج للتأكد من الدفع لأنه PAID أصلاً
     order.status = 'processing' 
     order.save()
     return Response({"message": "Order is ready for Transporter"})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def farmer_dashboard_stats(request):
+    user = request.user
+    revenue = Order.objects.filter(farmer=user, is_paid=True).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    return Response({
+        "total_products": Product.objects.filter(farmer=user).count(),
+        "total_orders": Order.objects.filter(farmer=user).count(),
+        "total_revenue": float(revenue)
+    })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -123,47 +121,56 @@ def farmer_orders_list(request):
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def farmer_dashboard_stats(request):
-    from products.models import Product
-    user = request.user
-    # سيحسب الأموال فوراً لأن is_paid=True
-    revenue = Order.objects.filter(farmer=user, is_paid=True).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    stats = {
-        "total_products": Product.objects.filter(farmer=user).count(),
-        "total_orders": Order.objects.filter(farmer=user).count(),
-        "total_revenue": float(revenue)
-    }
-    return Response(stats)
-
 
 # =========================================================
-# 4. تحكم الناقل (Transporter Views)
+# 3. تحكم الناقل (Available, Accept, Reject)
 # =========================================================
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def available_missions(request):
-    """الناقل يرى الطلبات الجاهزة للنقل فقط"""
-    missions = Order.objects.filter(status='processing', transporter__isnull=True).order_by('-created_at')
+    """جلب الطلبات المدفوعة التي تطابق عنوان الناقل"""
+    transporter_user = request.user
+    trans_addr = transporter_user.address
+
+    if not trans_addr:
+        return Response({"error": "يرجى كتابة عنوانك في البروفايل"}, status=400)
+
+    missions = Order.objects.filter(
+        status='paid',
+        transporter__isnull=True,
+        farmer__farmer__farm_location__icontains=trans_addr.strip()
+    ).distinct().order_by('-created_at')
+
     serializer = OrderSerializer(missions, many=True)
     return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def accept_mission(request, order_id):
+    """قبول المهمة وتغيير حالتها إلى مشحونة"""
     order = get_object_or_404(Order, id=order_id)
     if order.transporter:
-        return Response({"error": "Already accepted by another transporter"}, status=400)
+        return Response({"error": "هذه المهمة مأخوذة من قبل ناقل آخر"}, status=400)
     
     order.transporter = request.user
     order.status = 'shipped' 
     order.save()
-    return Response({"message": "Mission accepted", "status": order.status})
+    return Response({"message": "تم قبول المهمة بنجاح", "status": order.status})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reject_mission(request, order_id):
+    """رفض المهمة من طرف الناقل (وهمي للـ Frontend)"""
+    # في الـ Demo، الرفض لا يغير شيئاً في الداتابيز ليبقى متاحاً للآخرين
+    # الـ Frontend هو من يقوم بحذفه من القائمة المعروضة حالياً
+    return Response({
+        "message": "تم رفض المهمة، لن تظهر لك في القائمة حالياً",
+        "order_id": order_id
+    })
 
 
 # =========================================================
-# 5. تحكم المشتري (Stats)
+# 4. تحكم المشتري
 # =========================================================
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -182,3 +189,13 @@ def mark_as_delivered(request, order_id):
     order.status = 'delivered' 
     order.save()
     return Response({"message": "Delivery confirmed"})
+
+
+# =========================================================
+# 5. Webhook
+# =========================================================
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def chargily_webhook(request):
+    return HttpResponse(status=200)

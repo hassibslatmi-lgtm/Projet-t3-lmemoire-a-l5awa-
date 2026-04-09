@@ -60,13 +60,13 @@ def delete_category(request, pk):  #hadi tkhali l'admin ydir delete category bsh
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ==========================================
-# --- 2. Official Price Views (الأسعار الرسمية) ---
-# ==========================================
+
+# Official Price Views 
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])  
-def list_official_prices(request):  #hadi la list ta3 officiel price bch l buyer ychouf l price
+def list_official_prices(request):  #hadi la list ta3 officiel price bch l Farmer ychouf l price
     prices = OfficialPrice.objects.all().order_by('-date_set') 
     serializer = OfficialPriceSerializer(prices, many=True, context={'request': request})
     return Response(serializer.data)
@@ -109,7 +109,7 @@ def get_official_price(request, pk):
 
 
 
-# --- 3. Farmer Product Views 
+# 3. Farmer Product Views 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
@@ -167,7 +167,7 @@ def delete_product(request, pk):
 
 
 
-# --- 4. Buyer Views (البحث، التفاصيل، والتقييم) ---
+# 4. Buyer Views
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])

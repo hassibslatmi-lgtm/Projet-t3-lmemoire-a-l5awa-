@@ -20,7 +20,7 @@ class OrderSerializer(serializers.ModelSerializer):
     farmer_name = serializers.ReadOnlyField(source='farmer.full_name')
     farmer_phone = serializers.ReadOnlyField(source='farmer.phone')
     
-    # جلب موقع المزرعة من موديل المستخدم (الفلاح)
+    # get location of the farmer
     farmer_address = serializers.ReadOnlyField(source='farmer.farm_location')
 
     class Meta:

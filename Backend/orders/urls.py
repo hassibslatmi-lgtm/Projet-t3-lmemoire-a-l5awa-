@@ -9,8 +9,7 @@ urlpatterns = [
     path('farmer-stats/', views.farmer_dashboard_stats, name='farmer-stats'),
     path('farmer/orders/', views.farmer_orders_list, name='farmer-orders-list'),
     path('farmer/mark-ready/<int:order_id>/', views.mark_order_processing, name='mark-ready'),
-    # path('farmer/mark-ready/<int:order_id>/', views.mark_order_ready, name='mark-order-ready'),
-    # --- Transporter (المهمات المتاحة وقبول المهمة) ---
     path('transporter/available-missions/', views.available_missions, name='available-missions'),
     path('transporter/accept-mission/<int:order_id>/', views.accept_mission, name='accept-mission'),
+    path('transporter/reject-mission/<int:order_id>/', views.reject_mission, name='reject-mission'),
 ]

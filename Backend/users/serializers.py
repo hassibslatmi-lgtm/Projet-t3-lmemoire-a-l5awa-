@@ -43,8 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.profile_photo:
             return request.build_absolute_uri(obj.profile_photo.url)
         
-        # إذا حبيت تستعمل الأيقونة اللي حطيتها في الميديا (default_user.png)
-        # تقدر تستعمل السطرين اللي تحت، وإذا حبيت ui-avatars خليها كيما راهي
+      
         name = obj.full_name or obj.username
         return f"https://ui-avatars.com/api/?name={name}&background=random&size=128"
 

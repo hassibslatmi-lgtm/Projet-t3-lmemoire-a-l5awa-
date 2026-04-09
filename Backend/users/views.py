@@ -27,7 +27,7 @@ def signup(request):
         return Response({"message": "تم التسجيل بنجاح. حسابك قيد المراجعة."}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 2. دخول المستخدم (Login)
+# (Login)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_api(request):
@@ -65,7 +65,7 @@ def login_api(request):
     except User.DoesNotExist:
         return Response({'error': 'الحساب غير موجود.'}, status=404)
 
-# 3. جلب قائمة الانتظار
+# get pending users list
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_pending_users(request):
@@ -73,7 +73,7 @@ def get_pending_users(request):
     serializer = UserSerializer(pending_users, many=True, context={'request': request})
     return Response(serializer.data, status=200)
 
-# 4. جلب قائمة الحسابات المفعلة والمحظورة
+# get validated users list
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_validated_users(request):
@@ -112,7 +112,7 @@ def admin_manage_user(request, user_id):
     except User.DoesNotExist:
         return Response({'error': 'المستخدم غير موجود'}, status=404)
 
-# 6. حظر أو إلغاء حظر (Toggle Block)
+# (Toggle Block)
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def toggle_user_block(request, user_id):
@@ -133,7 +133,7 @@ def toggle_user_block(request, user_id):
     except User.DoesNotExist:
         return Response({'error': 'المستخدم غير موجود'}, status=404)
 
-# 7. إحصائيات لوحة التحكم
+# Admin Dashboard Stats
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_admin_stats(request):

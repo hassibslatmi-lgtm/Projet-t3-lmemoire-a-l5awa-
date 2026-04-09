@@ -14,10 +14,9 @@ class User(AbstractUser):
         ('F', 'Female'),
     )
 
-    # الحقول الجديدة والمعدلة
     full_name = models.CharField(max_length=255, null=True, blank=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, null=True, blank=True)
-    email = models.EmailField(unique=True) # إيميل واحد فقط لكل النظام
+    email = models.EmailField(unique=True) # email as unique identifier
     
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
@@ -32,26 +31,26 @@ class User(AbstractUser):
     def get_photo_url(self):
         if self.profile_photo and hasattr(self.profile_photo, 'url'):
             return self.profile_photo.url
-        # رابط صورة افتراضية (تقدر تحط صورة في مجلد static)
+
         return "/static/images/default-avatar.png"
     def __str__(self):
         return f"{self.full_name if self.full_name else self.username} ({self.role})"
 
 
-# جدول بيانات الفلاح (Farmer)
+
 class Farmer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     farmer_card = models.CharField(max_length=50, unique=True)
     farm_location = models.CharField(max_length=255)
     farm_area = models.FloatField(help_text="المساحة بالهكتار")
 
-# جدول بيانات المشتري (Buyer)
+
 class Buyer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     business_name = models.CharField(max_length=255, null=True, blank=True)
     registre_commerce = models.CharField(max_length=50, unique=True, null=True, blank=True)
 
-# جدول بيانات الناقل (Transporter)
+
 class Transporter(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     driver_license_number = models.CharField(max_length=50, unique=True)

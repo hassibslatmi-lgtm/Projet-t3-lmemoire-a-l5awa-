@@ -5,7 +5,7 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),#signup Api (transporter,farmer,buyer)
     path('login/', views.login_api, name='login'),  #login Api (transporter,farmer,buyer)
     
-    # الإدارة (Admin Panel)
+    # (Admin Panel)
     path('admin/pending/', views.get_pending_users, name='get-pending'), #liste of users pending 
     path('admin/validated/', views.get_validated_users, name='get-validated'),#liste of users validated
     path('admin/manage/<int:user_id>/', views.admin_manage_user, name='manage-new-user'), #validate or reject new users
