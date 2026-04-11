@@ -161,12 +161,32 @@ def accept_mission(request, order_id):
 @permission_classes([IsAuthenticated])
 def reject_mission(request, order_id):
     """رفض المهمة من طرف الناقل (وهمي للـ Frontend)"""
-    # في الـ Demo، الرفض لا يغير شيئاً في الداتابيز ليبقى متاحاً للآخرين
-    # الـ Frontend هو من يقوم بحذفه من القائمة المعروضة حالياً
     return Response({
         "message": "تم رفض المهمة، لن تظهر لك في القائمة حالياً",
         "order_id": order_id
     })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def transporter_dashboard_stats(request):
+    """إحصائيات الناقل (عدد المهمات، الخ)"""
+    user = request.user
+    completed = Order.objects.filter(transporter=user, status='delivered').count()
+    active = Order.objects.filter(transporter=user, status='shipped').count()
+    
+    return Response({
+        "missions_completed": completed,
+        "active_missions": active
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def transporter_missions_list(request):
+    """سجل مهمات الناقل سواء الحالية أو المكتملة"""
+    missions = Order.objects.filter(transporter=request.user).order_by('-created_at')
+    serializer = OrderSerializer(missions, many=True)
+    return Response(serializer.data)
+
 
 
 # =========================================================

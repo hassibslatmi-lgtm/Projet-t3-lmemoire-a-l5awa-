@@ -180,3 +180,9 @@ export const markOrderAsDelivered = (id) =>
 
 export const rejectMission = (id) => 
   request(`/api/orders/transporter/reject-mission/${id}/`, { method: 'POST' });
+
+export const getTransporterStats = () => 
+  request('/api/orders/transporter/stats/');
+
+export const getTransporterMissions = () => 
+  request('/api/orders/transporter/missions/');

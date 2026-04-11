@@ -108,8 +108,17 @@ export default function SignupPage() {
         {/* Left Side (Image & Brand) */}
         <section className="relative hidden md:flex md:w-5/12 lg:w-1/2 flex-col justify-between p-12 overflow-hidden bg-[#386a20] text-white">
           <div className="absolute inset-0 z-0">
-            {/* استبدال رابط الصورة بصورة حقيقية أو Placeholder */}
-            <img alt="Agricultural Hills" className="w-full h-full object-cover opacity-40" src="https://images.unsplash.com/photo-1500382017468-9049fee74a62?auto=format&fit=crop&q=80&w=2000" />
+            <img 
+              alt={`${role} background`} 
+              className="w-full h-full object-cover opacity-40 transition-opacity duration-500" 
+              src={
+                role === 'Farmer' 
+                  ? "https://images.unsplash.com/photo-1500382017468-9049fee74a62?auto=format&fit=crop&q=80&w=2000"
+                  : role === 'Buyer'
+                  ? "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000"
+                  : "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=2000"
+              } 
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-[#386a20]/40 to-[#386a20]"></div>
           </div>
           <div className="relative z-10">

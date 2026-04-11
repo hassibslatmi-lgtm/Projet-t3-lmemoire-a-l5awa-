@@ -3,10 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   getAvailableMissions, 
   acceptMission, 
-  rejectMission, // الدالة الجديدة
+  rejectMission, 
   getName, 
   clearAuth 
 } from '../services/api';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function TransporterRequests() {
   const navigate = useNavigate();
@@ -133,6 +134,8 @@ export default function TransporterRequests() {
               </div>
             </div>
             <div className="flex items-center gap-4 ml-auto">
+              <NotificationDropdown role="transporter" />
+              <div className="h-8 w-px bg-outline-variant/30 mx-2 hidden sm:block"></div>
               <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
                 <span className="material-symbols-outlined text-lg">logout</span>
                 <span>Logout</span>

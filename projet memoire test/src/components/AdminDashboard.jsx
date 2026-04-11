@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import NotificationDropdown from './NotificationDropdown';
 import ValidateAccountsModal from './ValidateAccountsModal';
 import BlockAccountsModal from './BlockAccountsModal';
 import AdminManageCategories from './AdminManageCategories';
@@ -89,10 +90,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4 ml-auto">
-              <button className="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors relative cursor-pointer">
-                <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-surface"></span>
-              </button>
+              <NotificationDropdown role="admin" />
               <div className="h-8 w-px bg-outline-variant/30 mx-2 hidden sm:block"></div>
               <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
                 <span className="material-symbols-outlined text-lg">logout</span>

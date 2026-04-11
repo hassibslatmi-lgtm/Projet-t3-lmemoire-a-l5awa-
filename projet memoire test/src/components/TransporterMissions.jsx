@@ -1,16 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getTransporterMissions, markOrderAsDelivered } from '../services/api';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function TransporterMissions() {
   const navigate = useNavigate();
   const location = useLocation();
-  const mission = location.state?.mission;
+  const [mission, setMission] = useState(location.state?.mission || null);
+  const [loading, setLoading] = useState(!mission);
   
   const profilePic = 'https://images.unsplash.com/photo-1541703138379-99a3c9b74074?auto=format&fit=crop&q=80&w=300';
   
   // Statuses: 'placed', 'on_way', 'delivered'
-  const [currentStatus, setCurrentStatus] = useState('placed');
-  const [transportFee, setTransportFee] = useState(mission?.price || '');
+  const [currentStatus, setCurrentStatus] = useState(mission?.status === 'delivered' ? 'delivered' : (mission?.status === 'shipped' ? 'on_way' : 'placed'));
+  const [transportFee, setTransportFee] = useState(mission?.total_amount || '');
+
+  useEffect(() => {
+    if (!mission) {
+      const fetchMission = async () => {
+        try {
+          const missions = await getTransporterMissions();
+          const active = missions.find(m => m.status === 'shipped' || m.status === 'processing');
+          if (active) {
+            setMission(active);
+            setCurrentStatus(active.status === 'shipped' ? 'on_way' : 'placed');
+            setTransportFee(active.total_amount);
+          }
+        } catch (error) {
+          console.error("Failed to fetch active mission", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchMission();
+    }
+  }, [mission]);
+
+  const handleUpdateStatus = async (newStatus) => {
+    if (newStatus === 'delivered' && mission) {
+      try {
+        await markOrderAsDelivered(mission.id);
+        setCurrentStatus('delivered');
+        alert("Mission successfully marked as Delivered!");
+      } catch (err) {
+        alert("Error updating mission: " + (err.data?.error || "Unknown error"));
+      }
+    } else {
+      setCurrentStatus(newStatus);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('agrigov_token');
@@ -76,10 +114,7 @@ export default function TransporterMissions() {
               </div>
             </div>
             <div className="flex items-center gap-4 ml-auto">
-              <button className="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors relative cursor-pointer">
-                <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-surface"></span>
-              </button>
+              <NotificationDropdown role="transporter" />
               <div className="h-8 w-px bg-outline-variant/30 mx-2 hidden sm:block"></div>
               <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
                 <span className="material-symbols-outlined text-lg">logout</span>
@@ -99,7 +134,11 @@ export default function TransporterMissions() {
               <h1 className="text-primary text-3xl font-black tracking-tight">Current Mission</h1>
             </div>
 
-            {!mission ? (
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <p className="text-slate-500 font-bold">Loading active mission...</p>
+              </div>
+            ) : !mission ? (
               <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-outline-variant/30 shadow-sm mt-8 border-dashed">
                 <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
                   <span className="material-symbols-outlined text-4xl">inventory_2</span>
@@ -137,15 +176,15 @@ export default function TransporterMissions() {
                          <div className="w-full h-32 rounded-xl bg-cover bg-center border border-slate-200" style={{ backgroundImage: `url("${mission.image}")` }}></div>
                       )}
                       <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-slate-400 text-xl">{mission.icon || 'inventory_2'}</span>
-                        <p className="text-sm font-medium text-slate-700">{mission.title}</p>
+                        <span className="material-symbols-outlined text-slate-400 text-xl">inventory_2</span>
+                        <p className="text-sm font-medium text-slate-700">Order from Farmland</p>
                       </div>
                       
                       <div className="flex items-start gap-3">
                         <span className="material-symbols-outlined text-slate-400 text-xl text-primary">location_on</span>
                         <div className="flex flex-col">
                           <p className="text-[10px] text-slate-500 uppercase tracking-wide font-black">Pickup</p>
-                          <p className="text-sm font-bold text-slate-800">{mission.pickup}</p>
+                          <p className="text-sm font-bold text-slate-800">{mission.pickup_address || mission.pickup || 'Farm'}</p>
                         </div>
                       </div>
                       
@@ -153,7 +192,7 @@ export default function TransporterMissions() {
                         <span className="material-symbols-outlined text-slate-400 text-xl text-orange-600">flag</span>
                         <div className="flex flex-col">
                           <p className="text-[10px] text-slate-500 uppercase tracking-wide font-black">Delivery</p>
-                          <p className="text-sm font-bold text-slate-800">{mission.delivery}</p>
+                          <p className="text-sm font-bold text-slate-800">{mission.shipping_address || mission.delivery}</p>
                         </div>
                       </div>
                     </div>
@@ -202,7 +241,7 @@ export default function TransporterMissions() {
                         }`}>
                         <input 
                           checked={currentStatus === 'on_way'} 
-                          onChange={() => setCurrentStatus('on_way')}
+                          onChange={() => handleUpdateStatus('on_way')}
                           className="hidden" 
                           name="status" 
                           type="radio" 
@@ -234,7 +273,11 @@ export default function TransporterMissions() {
                         }`}>
                         <input 
                           checked={currentStatus === 'delivered'} 
-                          onChange={() => setCurrentStatus('delivered')}
+                          onChange={() => {
+                            if(window.confirm('Are you sure you want to mark this order as Delivered? This cannot be undone.')){
+                              handleUpdateStatus('delivered');
+                            }
+                          }}
                           className="hidden" 
                           name="status" 
                           type="radio" 
