@@ -5,6 +5,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.db.models import Sum
+from django.db import transaction 
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -15,10 +16,11 @@ from .serializers import OrderSerializer
 from products.models import Product, OfficialPrice
 
 # =========================================================
-# 1. إنشاء الطلب (المشتري)
+# 1. إنشاء الطلب (المشتري) - مع تعديل خصم الكمية والتحقق
 # =========================================================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic 
 def place_order(request):
     data = request.data
     buyer = request.user
@@ -31,7 +33,15 @@ def place_order(request):
     if not address or not phone:
         return Response({"error": "Address and phone are required"}, status=400)
 
+    # 1. التحقق من وجود المنتج والكمية الكافية
     product = get_object_or_404(Product, id=product_id)
+    
+    # التحقق: إذا كانت الكمية المطلوبة أكبر من المتوفرة
+    if product.quantity < quantity:
+        return Response({
+            "error": f"الكمية المطلوبة غير متوفرة. المتبقي في المخزن: {product.quantity} فقط."
+        }, status=400)
+
     farmer_user = product.farmer 
     
     price_entry = OfficialPrice.objects.filter(product_name=product.name).first()
@@ -45,6 +55,7 @@ def place_order(request):
     except:
         farm_loc = "Site Web"
 
+    # 2. إنشاء الطلب
     order = Order.objects.create(
         buyer=buyer,
         farmer=farmer_user,
@@ -56,6 +67,7 @@ def place_order(request):
         is_paid=True     
     )
 
+    # 3. إنشاء عنصر الطلب
     OrderItem.objects.create(
         order=order, 
         product=product, 
@@ -63,6 +75,11 @@ def place_order(request):
         price_at_purchase=price_entry.price
     )
 
+    # 4. تحديث الكمية في المخزن (الخصم)
+    product.quantity -= quantity
+    product.save()
+
+    # 5. التعامل مع بوابة الدفع Chargily
     url = f"{settings.CHARGILY_BASE_URL}/checkouts"
     headers = {
         "Authorization": f"Bearer {settings.CHARGILY_SECRET_KEY}",
@@ -84,12 +101,17 @@ def place_order(request):
             return Response({
                 "checkout_url": res_data.get('checkout_url'), 
                 "order_id": order.id,
-                "message": "Order created and PAID successfully"
+                "message": "Order created and PAID successfully. Stock updated.",
+                "remaining_quantity": product.quantity
             }, status=201)
     except:
         pass
 
-    return Response({"message": "Order created as PAID locally", "order_id": order.id}, status=201)
+    return Response({
+        "message": "Order created as PAID locally. Stock updated.", 
+        "order_id": order.id,
+        "remaining_quantity": product.quantity
+    }, status=201)
 
 
 # =========================================================
@@ -128,7 +150,6 @@ def farmer_orders_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def available_missions(request):
-    """جلب الطلبات المدفوعة التي تطابق عنوان الناقل"""
     transporter_user = request.user
     trans_addr = transporter_user.address
 
@@ -147,7 +168,6 @@ def available_missions(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def accept_mission(request, order_id):
-    """قبول المهمة وتغيير حالتها إلى مشحونة"""
     order = get_object_or_404(Order, id=order_id)
     if order.transporter:
         return Response({"error": "هذه المهمة مأخوذة من قبل ناقل آخر"}, status=400)
@@ -160,7 +180,6 @@ def accept_mission(request, order_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def reject_mission(request, order_id):
-    """رفض المهمة من طرف الناقل (وهمي للـ Frontend)"""
     return Response({
         "message": "تم رفض المهمة، لن تظهر لك في القائمة حالياً",
         "order_id": order_id
@@ -169,7 +188,6 @@ def reject_mission(request, order_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def transporter_dashboard_stats(request):
-    """إحصائيات الناقل (عدد المهمات، الخ)"""
     user = request.user
     completed = Order.objects.filter(transporter=user, status='delivered').count()
     active = Order.objects.filter(transporter=user, status='shipped').count()
@@ -182,11 +200,9 @@ def transporter_dashboard_stats(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def transporter_missions_list(request):
-    """سجل مهمات الناقل سواء الحالية أو المكتملة"""
     missions = Order.objects.filter(transporter=request.user).order_by('-created_at')
     serializer = OrderSerializer(missions, many=True)
     return Response(serializer.data)
-
 
 
 # =========================================================
@@ -210,12 +226,9 @@ def mark_as_delivered(request, order_id):
     order.save()
     return Response({"message": "Delivery confirmed"})
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def transporter_mark_delivered(request, order_id):
-    """الناقل يؤكد أنه قام بتسليم الطلب للمشتري"""
-    # نتأكد أن الذي يغير الحالة هو نفس الناقل الذي قبل المهمة
     order = get_object_or_404(Order, id=order_id, transporter=request.user)
     
     if order.status != 'shipped':
@@ -227,6 +240,13 @@ def transporter_mark_delivered(request, order_id):
         "message": "تم تحديث حالة الطلب إلى 'تم الاستلام' بنجاح",
         "status": order.status
     })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def buyer_orders_list(request):
+    orders = Order.objects.filter(buyer=request.user).order_by('-created_at')
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
 
 # =========================================================
 # 5. Webhook
