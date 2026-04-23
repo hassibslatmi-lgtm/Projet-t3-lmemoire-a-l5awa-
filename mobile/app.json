@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "AgriGov",
+    "slug": "mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agrigov.transporter"
+    },
+    "android": {
+      "package": "com.agrigov.transporter"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow camera access"
+        }
+      ]
+    ]
+  }
+}

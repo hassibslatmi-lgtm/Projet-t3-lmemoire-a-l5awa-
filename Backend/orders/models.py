@@ -1,10 +1,9 @@
 from django.db import models
 from django.conf import settings
-# ركز هنا: نحينا import المباشر تاع Product باش نتفاداو الـ Circular Import
+
 
 class Order(models.Model):
     STATUS_CHOICES = (
-       # ('pending', 'قيد الانتظار'),
         ('paid', 'مدفوع - جاهز للنقل'), 
         ('processing', 'قيد التحضير'),
         ('shipped', 'تم الشحن'),
@@ -16,7 +15,7 @@ class Order(models.Model):
     buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders_made')
     farmer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders_received')
     
-    # حقل الناقل (Transporter)
+    # (Transporter)
     transporter = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
@@ -40,7 +39,6 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    # التعديل هنا: استعملنا النص 'products.Product' بدل الـ Import المباشر
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)

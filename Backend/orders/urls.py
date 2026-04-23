@@ -15,6 +15,7 @@ urlpatterns = [
     path('transporter/mark-delivered/<int:order_id>/', views.transporter_mark_delivered, name='transporter-mark-delivered'),
     path('transporter/stats/', views.transporter_dashboard_stats, name='transporter-stats'),
     path('transporter/missions/', views.transporter_missions_list, name='transporter-missions-list'),
+    path('transporter/update-location/', views.update_transporter_location, name='update-location'),
 
     path('buyer/orders/', views.buyer_orders_list, name='buyer-orders-list'),
 ]

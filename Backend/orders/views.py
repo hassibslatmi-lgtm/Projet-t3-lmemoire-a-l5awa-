@@ -248,6 +248,16 @@ def buyer_orders_list(request):
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_transporter_location(request):
+    lat = request.data.get('lat')
+    lng = request.data.get('lng')
+    print(f"Location update from {request.user.username}: Lat {lat}, Lng {lng}")
+    # Here you could save to a model or update the user's profile
+    return Response({"message": "Location updated"})
+
+
 # =========================================================
 # 5. Webhook
 # =========================================================

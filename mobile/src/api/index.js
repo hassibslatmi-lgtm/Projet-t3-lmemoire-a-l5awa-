@@ -1,0 +1,65 @@
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Replace with your local IP for physical device testing
+// Use 10.0.2.2 for Android Emulator
+const BASE_URL = 'http://192.168.1.6:8000';
+
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor to add the token
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export const login = async (email, password) => {
+  const response = await api.post('/users/login/', { email, password });
+  return response.data;
+};
+
+export const getAvailableMissions = async () => {
+  const response = await api.get('/api/orders/transporter/available-missions/');
+  return response.data;
+};
+
+export const getMyMissions = async () => {
+  const response = await api.get('/api/orders/transporter/missions/');
+  return response.data;
+};
+
+export const acceptMission = async (orderId) => {
+  const response = await api.post(`/api/orders/transporter/accept-mission/${orderId}/`);
+  return response.data;
+};
+
+export const markAsDelivered = async (orderId) => {
+  const response = await api.post(`/api/orders/transporter/mark-delivered/${orderId}/`);
+  return response.data;
+};
+
+export const updateLocation = async (lat, lng) => {
+  // This endpoint might need to be created in the backend
+  const response = await api.post('/api/orders/transporter/update-location/', { lat, lng });
+  return response.data;
+};
+
+export const getTransporterStats = async () => {
+  const response = await api.get('/api/orders/transporter/stats/');
+  return response.data;
+};
+
+export default api;
