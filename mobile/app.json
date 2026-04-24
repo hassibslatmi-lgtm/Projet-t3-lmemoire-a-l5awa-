@@ -10,7 +10,8 @@
       "bundleIdentifier": "com.agrigov.transporter"
     },
     "android": {
-      "package": "com.agrigov.transporter"
+      "package": "com.agrigov.transporter",
+      "usesCleartextTraffic": true
     },
     "plugins": [
       [

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Replace with your local IP for physical device testing
 // Use 10.0.2.2 for Android Emulator
-const BASE_URL = 'http://192.168.1.6:8000';
+const BASE_URL = 'http://192.168.1.7:8000';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -78,6 +78,16 @@ export const updateUserProfile = async (formData) => {
       'Content-Type': 'multipart/form-data',
     },
   });
+  return response.data;
+};
+
+export const getNotifications = async () => {
+  const response = await api.get('/api/notifications/');
+  return response.data;
+};
+
+export const markNotificationAsRead = async (id) => {
+  const response = await api.patch(`/api/notifications/${id}/read/`);
   return response.data;
 };
 

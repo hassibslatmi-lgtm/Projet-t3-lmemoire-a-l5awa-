@@ -51,8 +51,10 @@ export default function SignupScreen({ navigation }) {
     email: '',
     phone: '',
     address: '',
-    license_number: '',
+    sex: '',
+    driver_license_number: '',
     license_type: '',
+    license_expiry_date: '',
     vehicle_name: '',
     password: '',
   });
@@ -75,16 +77,16 @@ export default function SignupScreen({ navigation }) {
   };
 
   const handleSignup = async () => {
-    const { license_number, license_type, vehicle_name, password } = formData;
-    if (!license_number || !license_type || !vehicle_name || !password) {
+    const { driver_license_number, license_type, vehicle_name, password } = formData;
+    if (!driver_license_number || !license_type || !vehicle_name || !password) {
       Alert.alert('Missing Fields', 'Please complete the transporter and security details.');
       return;
     }
 
     setLoading(true);
     try {
-      // Corrected Endpoint: Matches /users/login/ pattern from api/index.js
-      await api.post('/users/register/transporter/', formData);
+      // Corrected Endpoint: Matches /users/signup/ pattern from Backend/users/urls.py
+      await api.post('/users/signup/', { ...formData, role: 'transporter' });
       
       Alert.alert(
         'Registration Successful', 
@@ -165,6 +167,24 @@ export default function SignupScreen({ navigation }) {
                 onChangeText={(v) => updateForm('address', v)} 
               />
 
+              {/* Gender Selector */}
+              <View style={styles.genderContainer}>
+                <TouchableOpacity 
+                  style={[styles.genderBtn, formData.sex === 'M' && styles.genderBtnActive]}
+                  onPress={() => updateForm('sex', 'M')}
+                >
+                  <Ionicons name="man-outline" size={20} color={formData.sex === 'M' ? '#fff' : Colors.primary} />
+                  <Text style={[styles.genderText, formData.sex === 'M' && styles.genderTextActive]}>Male</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.genderBtn, formData.sex === 'F' && styles.genderBtnActive]}
+                  onPress={() => updateForm('sex', 'F')}
+                >
+                  <Ionicons name="woman-outline" size={20} color={formData.sex === 'F' ? '#fff' : Colors.primary} />
+                  <Text style={[styles.genderText, formData.sex === 'F' && styles.genderTextActive]}>Female</Text>
+                </TouchableOpacity>
+              </View>
+
               <TouchableOpacity 
                 style={styles.primaryButton} 
                 onPress={() => validateStep1() && setStep(2)}
@@ -186,14 +206,20 @@ export default function SignupScreen({ navigation }) {
               <InputField 
                 icon="id-card-outline" 
                 placeholder="License Number" 
-                value={formData.license_number} 
-                onChangeText={(v) => updateForm('license_number', v)} 
+                value={formData.driver_license_number} 
+                onChangeText={(v) => updateForm('driver_license_number', v)} 
               />
               <InputField 
                 icon="ribbon-outline" 
                 placeholder="License Type (e.g., B, C, D)" 
                 value={formData.license_type} 
                 onChangeText={(v) => updateForm('license_type', v)} 
+              />
+              <InputField 
+                icon="calendar-outline" 
+                placeholder="Expiry Date (YYYY-MM-DD)" 
+                value={formData.license_expiry_date} 
+                onChangeText={(v) => updateForm('license_expiry_date', v)} 
               />
               <InputField 
                 icon="car-outline" 
@@ -367,5 +393,34 @@ const styles = StyleSheet.create({
   },
   disabledBtn: {
     opacity: 0.7,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  genderBtn: {
+    flex: 1,
+    height: 60,
+    borderRadius: 15,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  genderBtnActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  genderText: {
+    marginLeft: 8,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  genderTextActive: {
+    color: '#fff',
   },
 });

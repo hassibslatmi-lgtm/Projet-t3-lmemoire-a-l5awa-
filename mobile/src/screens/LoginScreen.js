@@ -27,10 +27,38 @@ export default function LoginScreen({ navigation }) {
       return;
     }
     setLoading(true);
+    
+    // Diagnostic log
+    console.log(`Attempting login to: ${email} at http://192.168.1.7:8000/users/login/`);
+
     try {
       await login(email, password);
     } catch (e) {
-      Alert.alert('Login Failed', e.response?.data?.error || e.message || 'Something went wrong');
+      console.error('Login Error Object:', e);
+      
+      let errorMessage = e.message;
+      if (e.response) {
+        // Server responded with a status code outside the 2xx range
+        errorMessage = `Server Error (${e.response.status}): ${JSON.stringify(e.response.data)}`;
+      } else if (e.request) {
+        // Request was made but no response was received
+        errorMessage = 'Network Error: No response from server. Check IP, Firewall, and Cleartext permissions.';
+        
+        // Diagnostic fetch test
+        try {
+          console.log('Running diagnostic fetch test...');
+          const test = await fetch('http://192.168.1.7:8000/users/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          console.log('Fetch test status:', test.status);
+        } catch (fetchErr) {
+          console.error('Diagnostic fetch also failed:', fetchErr.message);
+        }
+      }
+
+      Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
     }

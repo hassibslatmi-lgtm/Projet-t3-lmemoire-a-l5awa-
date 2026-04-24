@@ -42,7 +42,10 @@ export default function Header() {
         </View>
         
         <View style={styles.right}>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('Notifications')}
+          >
             <Ionicons name="notifications-outline" size={24} color="#1E293B" />
             <View style={styles.dot} />
           </TouchableOpacity>

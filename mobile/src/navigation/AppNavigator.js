@@ -14,8 +14,10 @@ import TransporterMissionDetails from '../screens/TransporterMissionDetails';
 import TransporterMissions from '../screens/TransporterMissions';
 import ProfileScreen from '../screens/ProfileScreen';
 import ScannerScreen from '../screens/ScannerScreen';
+import NotificationScreen from '../screens/NotificationScreen';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import { navigationRef } from './NavigationService';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,7 +82,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {userToken == null ? (
           <>
@@ -103,6 +105,14 @@ export default function AppNavigator() {
                 title: 'Verify Delivery',
                 headerTransparent: true,
                 headerTintColor: '#fff'
+              }} 
+            />
+            <Stack.Screen 
+              name="Notifications" 
+              component={NotificationScreen} 
+              options={{ 
+                headerShown: true, 
+                title: 'Notifications',
               }} 
             />
           </>
