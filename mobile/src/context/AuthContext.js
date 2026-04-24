@@ -12,8 +12,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const data = await loginApi(email, password);
-      if (data.role !== 'transporter' && !data.is_staff) {
-        throw new Error('Only transporters can log in to this app.');
+      if (data.role !== 'transporter' && data.role !== 'buyer' && !data.is_staff) {
+        throw new Error('Only transporters and buyers can log in to this app.');
       }
       setUserToken(data.token);
       setUserInfo(data);

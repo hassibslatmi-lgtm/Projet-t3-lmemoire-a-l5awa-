@@ -81,6 +81,11 @@ export const updateUserProfile = async (formData) => {
   return response.data;
 };
 
+export const updatePushToken = async (token) => {
+  const response = await api.patch('/users/profile/manage/', { expo_push_token: token });
+  return response.data;
+};
+
 export const getNotifications = async () => {
   const response = await api.get('/api/notifications/');
   return response.data;
@@ -88,6 +93,22 @@ export const getNotifications = async () => {
 
 export const markNotificationAsRead = async (id) => {
   const response = await api.patch(`/api/notifications/${id}/read/`);
+  return response.data;
+};
+
+// --- Buyer API Endpoints ---
+export const searchProducts = async (query = '') => {
+  const response = await api.get(`/api/products/search/?q=${query}`);
+  return response.data;
+};
+
+export const getBuyerOrders = async () => {
+  const response = await api.get('/api/orders/buyer/orders/');
+  return response.data;
+};
+
+export const placeOrder = async (orderData) => {
+  const response = await api.post('/api/orders/place/', orderData);
   return response.data;
 };
 

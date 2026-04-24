@@ -29,3 +29,9 @@ def order_status_notifications(sender, instance, created, **kwargs):
                 verb=f"تم استلام الطلب #{instance.id} من طرف المشتري",
                 order_id=instance.id
             )
+            Notification.objects.create(
+                recipient=instance.buyer,
+                sender=instance.transporter,
+                verb=f"Delivered: تم توصيل طلبك #{instance.id} بنجاح",
+                order_id=instance.id
+            )

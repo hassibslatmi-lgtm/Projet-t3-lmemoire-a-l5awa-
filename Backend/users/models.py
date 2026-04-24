@@ -26,6 +26,7 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True) 
     rejection_reason = models.TextField(null=True, blank=True) 
     created_at = models.DateTimeField(auto_now_add=True)
+    expo_push_token = models.CharField(max_length=255, null=True, blank=True)
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
     @property
     def get_photo_url(self):
