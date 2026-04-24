@@ -146,8 +146,8 @@ def get_admin_stats(request):
     }
     return Response(data, status=200)
 
-# Manage Profile (GET و PATCH)
-@api_view(['GET', 'PATCH'])
+# Manage Profile (GET, POST و PATCH)
+@api_view(['GET', 'POST', 'PATCH'])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
 def manage_profile(request):
@@ -156,7 +156,7 @@ def manage_profile(request):
         serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
 
-    elif request.method == 'PATCH':
+    elif request.method in ['POST', 'PATCH']:
         serializer = UserSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()

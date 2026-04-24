@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   RefreshControl,
-  SafeAreaView
+  SafeAreaView,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme/colors';
-import { MaterialIcons } from '@expo/vector-icons';
 import { getTransporterStats } from '../api';
 
+const { width } = Dimensions.get('window');
+
 export default function DashboardScreen({ navigation }) {
-  const { userInfo, logout } = useAuth();
+  const { userInfo } = useAuth();
   const [stats, setStats] = useState({ missions_completed: 0, active_missions: 0 });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -37,81 +42,104 @@ export default function DashboardScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  const StatCard = ({ title, value, icon, color }) => (
+  const StatCard = ({ title, value, icon: Icon, color, delay }) => (
     <View style={styles.statCard}>
-      <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
-        <MaterialIcons name={icon} size={24} color={color} />
+      <View style={[styles.statIconContainer, { backgroundColor: color + '15' }]}>
+        <Icon size={24} color={color} />
       </View>
-      <View>
-        <Text style={styles.statValue}>{value}</Text>
-        <Text style={styles.statTitle}>{title}</Text>
-      </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statTitle}>{title}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
       >
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.welcomeText}>Welcome back,</Text>
-            <Text style={styles.userName}>{userInfo?.full_name || 'Transporter'}</Text>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Welcome Back 👋</Text>
+          <Text style={styles.userName}>{userInfo?.full_name || 'Transporter'}</Text>
+        </View>
+
+        <View style={styles.content}>
+          <Text style={styles.sectionTitle}>Overview</Text>
+          <View style={styles.statsGrid}>
+            <StatCard
+              title="Active Orders"
+              value={stats.active_missions}
+              icon={(props) => <Ionicons name="cube-outline" {...props} />}
+              color="#3B82F6"
+            />
+            <StatCard
+              title="Completed"
+              value={stats.missions_completed}
+              icon={(props) => <Ionicons name="checkmark-circle-outline" {...props} />}
+              color={Colors.primary}
+            />
+            <StatCard
+              title="On Route"
+              value="0"
+              icon={(props) => <Ionicons name="location-outline" {...props} />}
+              color="#F59E0B"
+            />
           </View>
-          <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-            <MaterialIcons name="logout" size={24} color={Colors.error} />
+
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Requests')}
+          >
+            <LinearGradient
+              colors={['#E0F2FE', '#F0F9FF']}
+              style={styles.actionIcon}
+            >
+              <Ionicons name="search-outline" size={28} color="#0369A1" />
+            </LinearGradient>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Find Missions</Text>
+              <Text style={styles.actionDesc}>Browse available delivery jobs</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.outline} />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('Missions')}
+          >
+            <LinearGradient
+              colors={['#DCFCE7', '#F0FDF4']}
+              style={styles.actionIcon}
+            >
+              <Ionicons name="time-outline" size={28} color="#166534" />
+            </LinearGradient>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Active Tasks</Text>
+              <Text style={styles.actionDesc}>Manage your ongoing deliveries</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.outline} />
+          </TouchableOpacity>
+
+          <View style={styles.promoCard}>
+            <LinearGradient
+              colors={[Colors.primary, '#1F3F1B']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.promoGradient}
+            >
+              <View>
+                <Text style={styles.promoTitle}>AgriGov Logistics</Text>
+                <Text style={styles.promoDesc}>Sustainable farming through{'\n'}efficient transportation.</Text>
+              </View>
+              <Ionicons name="leaf-outline" size={40} color="rgba(255,255,255,0.2)" />
+            </LinearGradient>
+          </View>
         </View>
-
-        <View style={styles.statsGrid}>
-          <StatCard 
-            title="Completed" 
-            value={stats.missions_completed} 
-            icon="check-circle" 
-            color={Colors.primary} 
-          />
-          <StatCard 
-            title="Active" 
-            value={stats.active_missions} 
-            icon="local-shipping" 
-            color={Colors.secondary} 
-          />
-        </View>
-
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        
-        <TouchableOpacity 
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('MissionBoard')}
-        >
-          <View style={[styles.actionIcon, { backgroundColor: Colors.primaryContainer }]}>
-            <MaterialIcons name="assignment" size={32} color={Colors.onPrimaryContainer} />
-          </View>
-          <View style={styles.actionInfo}>
-            <Text style={styles.actionTitle}>Available Missions</Text>
-            <Text style={styles.actionDesc}>Find new delivery requests in your area</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.outline} />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('ActiveMissions')}
-        >
-          <View style={[styles.actionIcon, { backgroundColor: Colors.tertiaryContainer }]}>
-            <MaterialIcons name="navigation" size={32} color={Colors.onTertiaryContainer} />
-          </View>
-          <View style={styles.actionInfo}>
-            <Text style={styles.actionTitle}>Active Missions</Text>
-            <Text style={styles.actionDesc}>Track and manage your current deliveries</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={24} color={Colors.outline} />
-        </TouchableOpacity>
-
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -121,89 +149,92 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    padding: 20,
+    paddingBottom: 30,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-    marginTop: 10,
+  welcomeSection: {
+    paddingHorizontal: 25,
+    paddingTop: 30,
+    paddingBottom: 10,
   },
   welcomeText: {
-    fontSize: 16,
-    color: Colors.onSurfaceVariant,
+    fontSize: 14,
+    color: Colors.outline,
+    fontWeight: '500',
   },
   userName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.onBackground,
+    marginTop: 4,
   },
-  logoutButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: Colors.errorContainer,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconContainer: {
-    padding: 8,
-    borderRadius: 12,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.onSurface,
-  },
-  statTitle: {
-    fontSize: 12,
-    color: Colors.onSurfaceVariant,
+  content: {
+    paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.onSurface,
+    color: Colors.onBackground,
     marginBottom: 16,
+    marginTop: 24,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    backgroundColor: Colors.surface,
+    width: (width - 60) / 3,
+    padding: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  statIconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.onSurface,
+  },
+  statTitle: {
+    fontSize: 11,
+    color: Colors.outline,
+    fontWeight: '600',
+    marginTop: 4,
   },
   actionCard: {
     backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    elevation: 1,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
+    padding: 16,
+    borderRadius: 22,
+    marginBottom: 14,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowRadius: 10,
   },
   actionIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 16,
   },
   actionInfo: {
     flex: 1,
-    marginLeft: 16,
   },
   actionTitle: {
     fontSize: 16,
@@ -212,7 +243,29 @@ const styles = StyleSheet.create({
   },
   actionDesc: {
     fontSize: 13,
-    color: Colors.onSurfaceVariant,
+    color: Colors.outline,
     marginTop: 2,
+  },
+  promoCard: {
+    marginTop: 10,
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  promoGradient: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
+  },
+  promoTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  promoDesc: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    marginTop: 6,
+    lineHeight: 18,
   },
 });

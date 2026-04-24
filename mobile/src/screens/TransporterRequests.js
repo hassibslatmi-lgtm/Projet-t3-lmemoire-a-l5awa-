@@ -1,24 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  Image,
   ActivityIndicator,
   Alert,
-  RefreshControl,
-  TextInput,
   ScrollView,
-  SafeAreaView
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
+  RefreshControl,
 } from 'react-native';
-import { Search, SlidersHorizontal } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../theme/colors';
 import { getAvailableMissions, acceptMission } from '../api';
-import Header from '../components/Header';
 import MissionCard from '../components/MissionCard';
 
-export default function MissionBoardScreen() {
+const { width } = Dimensions.get('window');
+
+export default function TransporterRequests() {
+  const navigation = useNavigation();
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -27,18 +33,10 @@ export default function MissionBoardScreen() {
   const fetchMissions = async () => {
     try {
       const data = await getAvailableMissions();
-      // Add some mock data properties for the new UI
-      const enrichedData = data.map(m => ({
-        ...m,
-        title: m.product_name || '50kg Organic Wheat',
-        is_urgent: Math.random() > 0.7,
-        distance: (Math.random() * 15 + 2).toFixed(1) + ' km',
-        earnings: (Math.random() * 5000 + 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-      }));
-      setMissions(enrichedData);
+      setMissions(data);
     } catch (e) {
-      console.log('Fetch missions error:', e);
-      Alert.alert('Error', 'Failed to load available missions');
+      console.error('Fetch missions error:', e);
+      Alert.alert('Error', 'Failed to load available missions.');
     } finally {
       setLoading(false);
     }
@@ -56,18 +54,45 @@ export default function MissionBoardScreen() {
 
   const handleAccept = async (id) => {
     try {
+      setLoading(true);
       await acceptMission(id);
-      Alert.alert('Success', 'Mission accepted successfully!');
-      fetchMissions();
+      Alert.alert('Success', 'Mission accepted successfully!', [
+        { 
+          text: 'Go to My Missions', 
+          onPress: () => navigation.navigate('Missions') 
+        }
+      ]);
+      // Immediately navigate as per Web logic
+      navigation.navigate('Missions');
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.error || 'Failed to accept mission');
+      Alert.alert('Error', e.response?.data?.error || 'Failed to accept mission.');
+      fetchMissions();
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleReject = (id) => {
+    Alert.alert(
+      'Reject Mission',
+      'Are you sure you want to reject this request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Reject', 
+          style: 'destructive',
+          onPress: () => {
+            setMissions(missions.filter(m => m.id !== id));
+          }
+        }
+      ]
+    );
+  };
+
   const FilterChip = ({ title }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
-        styles.filterChip, 
+        styles.filterChip,
         activeFilter === title && styles.activeFilterChip
       ]}
       onPress={() => setActiveFilter(title)}
@@ -83,13 +108,12 @@ export default function MissionBoardScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={{ backgroundColor: '#fff' }} />
-      <Header />
-      
+      <StatusBar barStyle="dark-content" />
+
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
-          <Search size={20} color="#94A3B8" />
-          <TextInput 
+          <Ionicons name="search-outline" size={20} color="#94A3B8" />
+          <TextInput
             placeholder="Search product or location..."
             placeholderTextColor="#94A3B8"
             style={styles.searchInput}
@@ -101,6 +125,7 @@ export default function MissionBoardScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
           <FilterChip title="Distance" />
           <FilterChip title="Earnings" />
+          <FilterChip title="Price" />
           <FilterChip title="More Filters" />
         </ScrollView>
       </View>
@@ -108,23 +133,35 @@ export default function MissionBoardScreen() {
       {loading && !refreshing ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading available requests...</Text>
         </View>
       ) : (
         <FlatList
           data={missions}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <MissionCard 
-              mission={item} 
+            <MissionCard
+              mission={item}
               onAccept={() => handleAccept(item.id)}
-              onReject={() => Alert.alert('Rejected', 'Mission rejected')}
+              onReject={() => handleReject(item.id)}
             />
           )}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              tintColor={Colors.primary} 
+              colors={[Colors.primary]}
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No missions available right now</Text>
+              <Ionicons name="notifications-off-outline" size={60} color="#CBD5E1" />
+              <Text style={styles.emptyText}>No available requests at the moment.</Text>
+              <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+                <Text style={styles.refreshBtnText}>Refresh List</Text>
+              </TouchableOpacity>
             </View>
           }
         />
@@ -140,7 +177,7 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 10,
     backgroundColor: '#fff',
   },
   searchBar: {
@@ -150,6 +187,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 16,
     height: 50,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   searchInput: {
     flex: 1,
@@ -158,7 +197,7 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
   filterSection: {
-    paddingVertical: 16,
+    paddingVertical: 15,
     backgroundColor: '#fff',
   },
   filterScroll: {
@@ -170,13 +209,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   activeFilterChip: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   filterChipText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#64748B',
   },
   activeFilterChipText: {
@@ -184,19 +226,38 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 12,
+    color: '#64748B',
+    fontSize: 14,
+  },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 64,
+    marginTop: 80,
   },
   emptyText: {
     fontSize: 16,
     color: '#94A3B8',
+    marginTop: 15,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  refreshBtn: {
+    marginTop: 20,
+    paddingHorizontal: 25,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+  },
+  refreshBtnText: {
+    color: '#fff',
+    fontWeight: '700',
   },
 });

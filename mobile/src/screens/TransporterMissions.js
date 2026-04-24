@@ -11,19 +11,17 @@ import {
   Linking
 } from 'react-native';
 import { Colors } from '../theme/colors';
-import { MaterialIcons } from '@expo/vector-icons';
-import { getMyMissions, markAsDelivered } from '../api';
-
-export default function ActiveMissionsScreen({ navigation }) {
+import { Ionicons } from '@expo/vector-icons';
+import { getTransporterMissions, markAsDelivered } from '../api';
+export default function TransporterMissions({ navigation }) {
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchMissions = async () => {
     try {
-      const data = await getMyMissions();
-      // Filter for shipped missions (active ones)
-      setMissions(data.filter(m => m.status === 'shipped'));
+      const data = await getTransporterMissions();
+      setMissions(data);
     } catch (e) {
       console.log('Fetch missions error:', e);
       Alert.alert('Error', 'Failed to load active missions');
@@ -71,47 +69,48 @@ export default function ActiveMissionsScreen({ navigation }) {
   };
 
   const MissionItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => navigation.navigate('MissionDetails', { missionId: item.id })}
+      activeOpacity={0.7}
+    >
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.orderId}>Order #{item.id}</Text>
           <Text style={styles.statusBadge}>IN TRANSIT</Text>
         </View>
         <TouchableOpacity style={styles.mapButton} onPress={() => openMaps(item.shipping_address)}>
-          <MaterialIcons name="map" size={24} color={Colors.primary} />
+          <Ionicons name="map-outline" size={24} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.routeContainer}>
         <View style={styles.routeStep}>
-          <MaterialIcons name="location-on" size={20} color={Colors.primary} />
+          <Ionicons name="location-outline" size={20} color={Colors.primary} />
           <View style={styles.routeInfo}>
-            <Text style={styles.routeLabel}>From</Text>
-            <Text style={styles.routeText}>{item.pickup_address}</Text>
+            <Text style={styles.routeLabel}>Pickup Point</Text>
+            <Text style={styles.routeText}>{item.farmer_address || 'N/A'}</Text>
           </View>
         </View>
         
         <View style={styles.routeDivider} />
 
         <View style={styles.routeStep}>
-          <MaterialIcons name="flag" size={20} color={Colors.secondary} />
+          <Ionicons name="flag-outline" size={20} color={Colors.secondary} />
           <View style={styles.routeInfo}>
-            <Text style={styles.routeLabel}>To</Text>
-            <Text style={styles.routeText}>{item.shipping_address}</Text>
+            <Text style={styles.routeLabel}>Destination</Text>
+            <Text style={styles.routeText}>{item.shipping_address || 'N/A'}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity 
-          style={styles.verifyButton}
-          onPress={() => handleVerify(item.id)}
-        >
-          <MaterialIcons name="qr-code-scanner" size={20} color={Colors.onPrimary} />
-          <Text style={styles.verifyButtonText}>Verify & Complete</Text>
-        </TouchableOpacity>
+        <View style={styles.verifyButton}>
+          <Ionicons name="qr-code-outline" size={20} color={Colors.onPrimary} />
+          <Text style={styles.verifyButtonText}>Tap to Track & Complete</Text>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading && !refreshing) {
@@ -132,7 +131,7 @@ export default function ActiveMissionsScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="local-shipping" size={64} color={Colors.outlineVariant} />
+            <Ionicons name="car-outline" size={64} color={Colors.outlineVariant} />
             <Text style={styles.emptyText}>You have no active deliveries</Text>
             <TouchableOpacity 
               style={styles.browseButton} 

@@ -36,8 +36,13 @@ export const getAvailableMissions = async () => {
   return response.data;
 };
 
-export const getMyMissions = async () => {
+export const getTransporterMissions = async () => {
   const response = await api.get('/api/orders/transporter/missions/');
+  return response.data;
+};
+
+export const getMissionDetails = async (orderId) => {
+  const response = await api.get(`/api/orders/transporter/missions/${orderId}/`);
   return response.data;
 };
 
@@ -59,6 +64,20 @@ export const updateLocation = async (lat, lng) => {
 
 export const getTransporterStats = async () => {
   const response = await api.get('/api/orders/transporter/stats/');
+  return response.data;
+};
+
+export const getUserProfile = async () => {
+  const response = await api.get('/users/profile/manage/');
+  return response.data;
+};
+
+export const updateUserProfile = async (formData) => {
+  const response = await api.post('/users/profile/manage/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 
