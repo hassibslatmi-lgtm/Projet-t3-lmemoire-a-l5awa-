@@ -1,26 +1,42 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationDropdown from './NotificationDropdown';
-import { getTransporterStats, getTransporterMissions, getName, clearAuth } from '../services/api';
+import { getTransporterStats, getTransporterMissions, getName, clearAuth, getFarmerProfile } from '../services/api';
+
+const BASE_URL = 'http://127.0.0.1:8000';
 
 export default function TransporterDashboard() {
   const navigate = useNavigate();
-  const profilePic = 'https://images.unsplash.com/photo-1541703138379-99a3c9b74074?auto=format&fit=crop&q=80&w=300';
-  const userName = getName() || 'Transporter';
   
-  const [showHistory, setShowHistory] = useState(false);
-  const [historyTab, setHistoryTab] = useState('accepted');
   const [stats, setStats] = useState({ missions_completed: 0, active_missions: 0 });
   const [missions, setMissions] = useState([]);
+  const [profile, setProfile] = useState({ full_name: '', photo: null });
   const [loading, setLoading] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyTab, setHistoryTab] = useState('accepted');
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${BASE_URL}${url}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsData = await getTransporterStats();
+        const [statsData, missionsData, profileData] = await Promise.all([
+          getTransporterStats(),
+          getTransporterMissions(),
+          getFarmerProfile() // Using same profile endpoint for all roles
+        ]);
+
         setStats(statsData);
-        const missionsData = await getTransporterMissions();
         setMissions(missionsData);
+        setProfile({
+          full_name: profileData.full_name || profileData.username,
+          photo: getImageUrl(profileData.profile_photo_url || profileData.profile_photo)
+        });
+
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
@@ -79,9 +95,12 @@ export default function TransporterDashboard() {
 
           <div className="p-4 border-t border-outline-variant/30">
             <div className="flex items-center gap-3 p-2 bg-surface-container rounded-xl cursor-default">
-              <div className="w-10 h-10 rounded-full bg-center bg-cover border border-outline-variant/50" style={{ backgroundImage: `url("${profilePic}")` }}></div>
+              <div className="w-10 h-10 rounded-full bg-center bg-cover border border-outline-variant/50 bg-slate-100 flex items-center justify-center text-primary font-bold"
+                   style={profile.photo ? { backgroundImage: `url("${profile.photo}")` } : {}}>
+                {!profile.photo && (profile.full_name?.charAt(0).toUpperCase() || 'T')}
+              </div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold truncate text-on-surface">{userName}</p>
+                <p className="text-sm font-bold truncate text-on-surface">{profile.full_name}</p>
                 <p className="text-xs text-on-surface-variant truncate">Transporter Account</p>
               </div>
             </div>
@@ -115,7 +134,7 @@ export default function TransporterDashboard() {
             
             {/* Welcome Title */}
             <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-black text-primary tracking-tight">Welcome, Transporter!</h1>
+              <h1 className="text-3xl font-black text-primary tracking-tight">Welcome, {profile.full_name?.split(' ')[0] || 'Transporter'}!</h1>
               <p className="text-slate-500 font-medium">Here is a quick overview of your transport operations.</p>
             </div>
 

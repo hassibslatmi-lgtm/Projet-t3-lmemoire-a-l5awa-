@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme/colors';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,7 +43,7 @@ export default function LoginScreen() {
     >
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <MaterialIcons name="agriculture" size={48} color={Colors.onPrimary} />
+          <Ionicons name="leaf" size={48} color="#fff" />
         </View>
         <Text style={styles.title}>AgriGov</Text>
         <Text style={styles.subtitle}>Transporter Portal</Text>
@@ -51,7 +51,7 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <MaterialIcons name="email" size={20} color={Colors.outline} style={styles.inputIcon} />
+          <Ionicons name="mail-outline" size={20} color={Colors.outline} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -63,7 +63,7 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <MaterialIcons name="lock" size={20} color={Colors.outline} style={styles.inputIcon} />
+          <Ionicons name="lock-closed-outline" size={20} color={Colors.outline} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -79,10 +79,19 @@ export default function LoginScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={Colors.onPrimary} />
+            <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.loginButtonText}>Login</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.signupLink} 
+          onPress={() => navigation.navigate('Signup')}
+        >
+          <Text style={styles.signupText}>
+            Don't have an account? <Text style={styles.signupTextBold}>Sign Up</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -160,6 +169,18 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: Colors.onPrimary,
     fontSize: 18,
+    fontWeight: '700',
+  },
+  signupLink: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  signupText: {
+    fontSize: 15,
+    color: Colors.onSurfaceVariant,
+  },
+  signupTextBold: {
+    color: Colors.primary,
     fontWeight: '700',
   },
 });

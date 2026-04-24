@@ -24,6 +24,7 @@ urlpatterns = [
     path('users/', include('users.urls')), 
     path('api/products/', include('products.urls')),
     path('api/orders/', include('orders.urls')),
+    path('api/notifications/', include('notifications.urls'))
 ]
 
 # هاد السطر هو "المفتاح" باش الصور يبانو في وقت التطوير

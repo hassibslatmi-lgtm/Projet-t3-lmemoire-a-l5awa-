@@ -6,17 +6,19 @@ import {
   getName, 
   getFarmerStats, 
   getFarmerOrders,
-  getFarmerProducts // تأكد بلي هاد الدالة كاين في ملف api.js تاعك
+  getFarmerProducts,
+  getFarmerProfile
 } from '../services/api';
+
+const BASE_URL = 'http://127.0.0.1:8000';
 
 export default function FarmerDashboard() {
   const navigate = useNavigate();
-  const userName = getName() || 'Farmer';
   
   // Modal state
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
-  const [showAllProductsModal, setShowAllProductsModal] = useState(false); // Modal للمنتجات
+  const [showAllProductsModal, setShowAllProductsModal] = useState(false); 
   const [complaintText, setComplaintText] = useState('');
 
   // --- Real Backend State ---
@@ -26,26 +28,39 @@ export default function FarmerDashboard() {
     totalRevenue: '0.00 DZD',
   });
   const [recentOrders, setRecentOrders] = useState([]);
-  const [recentProducts, setRecentProducts] = useState([]); // State للمنتجات
+  const [recentProducts, setRecentProducts] = useState([]); 
+  const [profile, setProfile] = useState({ full_name: '', photo: null });
   const [loading, setLoading] = useState(true);
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${BASE_URL}${url}`;
+  };
 
   // --- Fetch Data from Backend ---
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const statsData = await getFarmerStats();
+        const [statsData, ordersData, productsData, profileData] = await Promise.all([
+            getFarmerStats(),
+            getFarmerOrders(),
+            getFarmerProducts(),
+            getFarmerProfile()
+        ]);
+
         setStats({
           totalProducts: statsData.total_products || 0,
           totalOrders: statsData.total_orders || 0,
-          totalRevenue: `${statsData.total_spent || 0} DZD`,
+          totalRevenue: `${statsData.total_revenue || 0} DZD`,
         });
 
-        const ordersData = await getFarmerOrders();
         setRecentOrders(ordersData || []);
-
-        // جلب المنتجات من الباكاند
-        const productsData = await getFarmerProducts(); 
         setRecentProducts(productsData || []);
+        setProfile({
+            full_name: profileData.full_name || profileData.username,
+            photo: getImageUrl(profileData.profile_photo_url || profileData.profile_photo)
+        });
 
         setLoading(false);
       } catch (error) {
@@ -98,11 +113,12 @@ export default function FarmerDashboard() {
           
           <div className="p-4 border-t border-outline-variant/30">
             <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/20 shadow-sm">
-              <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shadow-inner shrink-0 overflow-hidden">
-                {userName.charAt(0).toUpperCase()}
+              <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shadow-inner shrink-0 overflow-hidden bg-center bg-cover"
+                   style={profile.photo ? { backgroundImage: `url("${profile.photo}")` } : {}}>
+                {!profile.photo && (profile.full_name?.charAt(0).toUpperCase() || 'F')}
               </div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-black truncate text-on-surface leading-tight">{userName}</p>
+                <p className="text-sm font-black truncate text-on-surface leading-tight">{profile.full_name}</p>
                 <p className="text-[11px] text-on-surface-variant truncate opacity-80">Farmer Account</p>
               </div>
             </div>
@@ -135,7 +151,7 @@ export default function FarmerDashboard() {
             {/* Welcome Banner */}
             <div className="relative overflow-hidden rounded-2xl bg-primary/10 p-8 mb-8 border border-primary/20 flex flex-col md:flex-row justify-between items-center gap-6">
                <div className="relative z-10 w-full text-center md:text-left">
-                  <h1 className="text-on-surface text-2xl md:text-3xl font-black mb-2">Welcome back, {userName}!</h1>
+                  <h1 className="text-on-surface text-2xl md:text-3xl font-black mb-2">Welcome back, {profile.full_name?.split(' ')[0] || 'Farmer'}!</h1>
                   <div className="flex items-center justify-center md:justify-start gap-2 text-primary font-medium">
                      <span className="material-symbols-outlined text-lg">calendar_today</span>
                      <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -202,7 +218,7 @@ export default function FarmerDashboard() {
                                <tr key={product.id} className="hover:bg-surface-container-lowest transition-colors">
                                   <td className="px-6 py-4 font-bold text-on-surface">{product.name}</td>
                                   <td className="px-6 py-4 text-sm font-medium">{new Date(product.created_at || Date.now()).toLocaleDateString()}</td>
-                                  <td className="px-6 py-4 text-right font-bold">{product.stock} {product.unit || 'kg'}</td>
+                                  <td className="px-6 py-4 text-right font-bold">{product.quantity} KG</td>
                                </tr>
                              ))
                            )}
@@ -240,7 +256,7 @@ export default function FarmerDashboard() {
                                   </td>
                                   <td className="px-6 py-4">
                                      <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase ${
-                                         order.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                         order.status === 'paid' ? 'bg-green-100 text-green-700' : (order.status === 'delivered' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700')
                                      }`}>
                                          {order.status}
                                      </span>
@@ -280,7 +296,7 @@ export default function FarmerDashboard() {
                         {recentProducts.map(product => (
                            <tr key={product.id} className="border-b border-outline-variant/10">
                               <td className="px-8 py-4 font-bold">{product.name}</td>
-                              <td className="px-8 py-4">{product.stock} {product.unit || 'kg'}</td>
+                              <td className="px-8 py-4">{product.quantity} KG</td>
                               <td className="px-8 py-4 text-right">{new Date(product.created_at).toLocaleDateString()}</td>
                            </tr>
                         ))}

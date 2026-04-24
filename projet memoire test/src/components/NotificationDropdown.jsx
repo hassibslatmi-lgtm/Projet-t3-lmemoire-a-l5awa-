@@ -1,48 +1,89 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 
-const mockNotifications = {
-  admin: [
-    { id: 1, title: 'New User Registration', description: 'Farmland Corp requested account validation.', time: '10m ago', unread: true },
-    { id: 2, title: 'Market Alert', description: 'Significant supply drop detected for Onions.', time: '1h ago', unread: true },
-    { id: 3, title: 'Support Ticket', description: 'Transporter Ahmed reported a route issue.', time: '2h ago', unread: false },
-  ],
-  farmer: [
-    { id: 1, title: 'New Order Received', description: 'Order #MS-8495 placed for 50kg of Potatoes.', time: '5m ago', unread: true },
-    { id: 2, title: 'Transporter Assigned', description: 'Ahmed Transporter accepted order #MS-8492.', time: '30m ago', unread: true },
-    { id: 3, title: 'Product Review Added', description: 'A buyer rated your Organic Tomatoes 5 stars!', time: '1d ago', unread: false },
-  ],
-  buyer: [
-    { id: 1, title: 'Order Shipped', description: 'Your order #MS-8493 is on the way.', time: 'Just now', unread: true },
-    { id: 2, title: 'Payment Successful', description: 'Chargily payment of 3200 DZD was confirmed.', time: '2h ago', unread: false },
-    { id: 3, title: 'Official Price Drop', description: 'The official price for Tomatoes has been updated.', time: '1d ago', unread: false },
-  ],
-  transporter: [
-    { id: 1, title: 'New Delivery Available', description: 'New request available from Green Valley Farm.', time: '2m ago', unread: true },
-    { id: 2, title: 'Weather Alert', description: 'Rain expected on your current delivery route.', time: '15m ago', unread: false },
-    { id: 3, title: 'Delivery Confirmed', description: 'Order #MS-422 successfully marked as Delivered.', time: '2h ago', unread: false },
-  ]
-};
+const BASE_URL = 'http://127.0.0.1:8000';
 
 export default function NotificationDropdown({ role = 'buyer' }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const notifications = mockNotifications[role] || mockNotifications['buyer'];
-  const [localNotifications, setLocalNotifications] = useState(notifications);
+  const [localNotifications, setLocalNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const unreadCount = localNotifications.filter(n => n.unread).length;
+  const unreadCount = localNotifications.filter(n => !n.is_read).length;
+
+  const fetchNotifications = async () => {
+    const token = localStorage.getItem('agrigov_token');
+    if (!token) return;
+
+    try {
+      const response = await axios.get(`${BASE_URL}/api/notifications/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setLocalNotifications(response.data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchNotifications();
+    // Real-time polling every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      clearInterval(interval);
+    };
   }, []);
 
-  const markAllRead = () => {
-    setLocalNotifications(localNotifications.map(n => ({ ...n, unread: false })));
+  const handleNotificationClick = async (id, isRead) => {
+    if (isRead) return;
+
+    const token = localStorage.getItem('agrigov_token');
+    try {
+      // Immediate UI update
+      setLocalNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
+      
+      // Backend update
+      await axios.patch(`${BASE_URL}/api/notifications/${id}/read/`, {}, {
+        headers: { Authorization: `Token ${token}` }
+      });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      // Rollback on error if necessary, but usually better to stay responsive
+    }
+  };
+
+  const markAllRead = async () => {
+    const token = localStorage.getItem('agrigov_token');
+    const unreadIds = localNotifications.filter(n => !n.is_read).map(n => n.id);
+    
+    if (unreadIds.length === 0) return;
+
+    try {
+      // Immediate UI update
+      setLocalNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+
+      // Call individual read for each (since no bulk endpoint exists)
+      await Promise.all(unreadIds.map(id => 
+        axios.patch(`${BASE_URL}/api/notifications/${id}/read/`, {}, {
+          headers: { Authorization: `Token ${token}` }
+        })
+      ));
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
   };
 
   return (
@@ -72,23 +113,27 @@ export default function NotificationDropdown({ role = 'buyer' }) {
             {localNotifications.length === 0 ? (
               <div className="p-8 text-center text-slate-500 w-full">
                 <span className="material-symbols-outlined text-4xl mb-2 opacity-50">notifications_paused</span>
-                <p className="text-sm">You have no notifications.</p>
+                <p className="text-sm">{loading ? 'Checking...' : 'You have no notifications.'}</p>
               </div>
             ) : (
               <div className="flex flex-col w-full">
                 {localNotifications.map(note => (
-                  <div key={note.id} className={`p-4 w-full border-b border-outline-variant/10 hover:bg-slate-50 transition-colors cursor-pointer ${note.unread ? 'bg-primary/5' : 'bg-white'}`}>
+                  <div 
+                    key={note.id} 
+                    onClick={() => handleNotificationClick(note.id, note.is_read)}
+                    className={`p-4 w-full border-b border-outline-variant/10 hover:bg-slate-50 transition-colors cursor-pointer ${!note.is_read ? 'bg-primary/5' : 'bg-white'}`}
+                  >
                     <div className="flex gap-3">
-                      <div className={`mt-1.5 size-2.5 rounded-full shrink-0 ${note.unread ? 'bg-primary' : 'bg-transparent'}`}></div>
+                      <div className={`mt-1.5 size-2.5 rounded-full shrink-0 ${!note.is_read ? 'bg-primary' : 'bg-transparent'}`}></div>
                       <div className="flex-1 min-w-0 pr-2">
-                        <p className={`text-sm truncate ${note.unread ? 'font-black text-slate-800' : 'font-bold text-slate-600'}`}>
-                          {note.title}
+                        <p className={`text-sm truncate ${!note.is_read ? 'font-black text-slate-800' : 'font-bold text-slate-600'}`}>
+                          {note.verb}
                         </p>
                         <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-snug">
-                          {note.description}
+                          {note.order_id ? `Order #${note.order_id} update.` : 'System notification.'}
                         </p>
                         <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-2">
-                          {note.time}
+                          {note.time_ago}
                         </p>
                       </div>
                     </div>

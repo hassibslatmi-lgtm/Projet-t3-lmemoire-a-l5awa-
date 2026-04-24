@@ -1,33 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import NotificationDropdown from './NotificationDropdown';
 
-const mockOrders = [
-  {
-    id: 'ORD-2026-001',
-    product: 'Premium Gala Apples',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCM_-get8Wg4mUTfkL4PeIf97fQ5A-o6L19Uk9r3B75LPhfC9oYrebx7f2e7a3Q7Dlf1jtLC_usIX_JTO1LQZ89cmEGt6IlPFC85ycrsmmTfGuGLT71Gl2w0_TFZzRhPzLlEKkCAm2maydlwGtnB7vikG0V77beupV4tJxrp39Te0ef89FBNaeMhXiuG76bxEDzcpgzvHTFGkZavdPsJesWoI1yfA9u1n4fAWRUJ54SImXQjnKy_88mOeL5L2FeueSlm6ghBkhvf8k',
-    date: '2026-03-28',
-    price: '$4.50',
-    status: 'Delivered',
-  },
-  {
-    id: 'ORD-2026-002',
-    product: 'Raw Wildflower Honey',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDmQmY7sm_OTojHO4cWRX8rmsfYF-uTsym8XYyNsCv99mKF-XnYxXwl3Er3AMqRWzFdQu8E_16G3XXr2d-h0D0ugfUJbieyh4iHgTPs-0IzRXP-Dt92Xi4Tw10gTzMjpNjnPG5Sz0WMt7EJMz0_kRGJEiSnKFM0SEcBYl3UkeQqsiulJRnWQKBxOTgcMFVBKfCTge9xJ9vN_RvKvWnrodk--jZvYD206vqHB6z67vlg3sP_sivZq4wVMTfelJoBxVrGrXkLJR0AZ7E',
-    date: '2026-03-25',
-    price: '$8.75',
-    status: 'On the Way',
-  },
-  {
-    id: 'ORD-2026-003',
-    product: 'Organic Bananas',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp3zhbL-yjqSS6CtpR5tREha8AG5AHBGtMFHVFFvx-V2_8jOmPKFwg7kPrXABTRNcZ-zqmgqs3ZzOgf3ZuquihbdBGy1KU57e1a-GFpQ6awroVVWOvaBzmf-O8blgRhUhATRH6tv7nZDqQlAYnZUmnWyv_wJH81pMDFFBktnKaxijrHkqB3xOlfrOYJYjncyF9fsYKL3qrsOPHRqQAtd1HJOu4Q-nsxFtZsLNYCNTywTZHPgoxCTfnHEULHMEAFHJb6p9XDbX0Xfc',
-    date: '2026-03-30',
-    price: '$2.80',
-    status: 'Order Placed',
-  },
-];
+const BASE_URL = 'http://127.0.0.1:8000';
 
 const statusConfig = {
   'Delivered': { color: 'bg-green-100 text-green-700 border-green-200', icon: 'check_circle' },
@@ -42,19 +18,84 @@ export default function BuyerDashboard() {
   const [activeSection, setActiveSection] = useState('profile');
   const [profilePic, setProfilePic] = useState('https://via.placeholder.com/150');
   const [profile, setProfile] = useState({
-    full_name: 'Ahmed Benali',
-    username: 'ahmed.benali',
-    email: 'ahmed@example.com',
-    phone: '+213 555 123 456',
+    full_name: '',
+    username: '',
+    email: '',
+    phone: '',
     sex: 'M',
-    address: '12 Rue des Oliviers, Alger',
+    address: '',
     password: '',
-    commercial_register: 'RC-2024-123456',
+    commercial_register: '',
   });
 
+  const [orders, setOrders] = useState([]);
+  const [fetching, setFetching] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [complaint, setComplaint] = useState('');
   const [complaintSent, setComplaintSent] = useState(false);
+
+  const token = localStorage.getItem('agrigov_token');
+
+  const getImageUrl = (url) => {
+    if (!url) return 'https://via.placeholder.com/150';
+    if (url.startsWith('http')) return url;
+    return `${BASE_URL}${url}`;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setFetching(true);
+      try {
+        const headers = { Authorization: `Token ${token}` };
+        
+        // Fetch Profile
+        const profileRes = await axios.get(`${BASE_URL}/users/profile/manage/`, { headers });
+        const p = profileRes.data;
+        setProfile({
+          full_name: p.full_name || '',
+          username: p.username || '',
+          email: p.email || '',
+          phone: p.phone || '',
+          sex: p.sex || 'M',
+          address: p.address || '',
+          password: '',
+          commercial_register: p.buyer?.commercial_register || '',
+        });
+        if (p.profile_photo_url) {
+          setProfilePic(getImageUrl(p.profile_photo_url));
+        }
+
+        // Fetch Orders
+        const ordersRes = await axios.get(`${BASE_URL}/api/orders/buyer/orders/`, { headers });
+        const mappedOrders = ordersRes.data.map(order => {
+          // Status mapping
+          let displayStatus = 'Order Placed';
+          if (order.status === 'delivered') displayStatus = 'Delivered';
+          else if (order.status === 'shipped') displayStatus = 'On the Way';
+
+          // Get product info from first item
+          const firstItem = order.items?.[0] || {};
+          
+          return {
+            id: order.id,
+            product: firstItem.product_name || 'Agri Product',
+            img: getImageUrl(firstItem.product_image),
+            date: order.created_at,
+            price: `DZD ${order.total_amount}`,
+            status: displayStatus,
+          };
+        });
+        setOrders(mappedOrders);
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchData();
+  }, [token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,9 +107,43 @@ export default function BuyerDashboard() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfilePic(reader.result);
-      reader.readAsDataURL(file);
+      setProfilePic(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setIsUpdating(true);
+    try {
+      const formData = new FormData();
+      formData.append('full_name', profile.full_name);
+      formData.append('phone', profile.phone);
+      formData.append('email', profile.email);
+      formData.append('sex', profile.sex);
+      formData.append('address', profile.address);
+      if (profile.password) formData.append('password', profile.password);
+      
+      // Commercial register is in extra_data for buyer
+      const extra_data = { commercial_register: profile.commercial_register };
+      formData.append('extra_data', JSON.stringify(extra_data));
+
+      if (fileInputRef.current?.files[0]) {
+        formData.append('profile_photo', fileInputRef.current.files[0]);
+      }
+
+      await axios.patch(`${BASE_URL}/users/profile/manage/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Token ${token}`
+        }
+      });
+      
+      // Sync UI
+      window.location.reload();
+    } catch (err) {
+      console.error('Update error:', err);
+      alert('Failed to update profile.');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -86,6 +161,17 @@ export default function BuyerDashboard() {
     { key: 'profile', label: 'Manage Profile', icon: 'person' },
     { key: 'orders', label: 'My Orders', icon: 'receipt_long' },
   ];
+
+  if (fetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          <p className="text-on-surface-variant font-bold">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-surface-container-lowest text-on-surface antialiased font-sans min-h-screen">
@@ -121,7 +207,7 @@ export default function BuyerDashboard() {
             <div className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
               <div className="w-10 h-10 rounded-full bg-center bg-cover border border-outline-variant/50" style={{ backgroundImage: `url("${profilePic}")` }}></div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold truncate text-on-surface">{profile.full_name}</p>
+                <p className="text-sm font-bold truncate text-on-surface">{profile.full_name || 'Buyer'}</p>
                 <p className="text-xs text-on-surface-variant truncate">Buyer Account</p>
               </div>
             </div>
@@ -162,7 +248,7 @@ export default function BuyerDashboard() {
                 <div className="bg-primary/5 border border-primary/15 rounded-xl px-6 py-5 flex items-center gap-4">
                   <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>waving_hand</span>
                   <div>
-                    <h1 className="text-xl font-black text-on-surface">Welcome back, {profile.full_name.split(' ')[0]}! 👋</h1>
+                    <h1 className="text-xl font-black text-on-surface">Welcome back, {profile.full_name?.split(' ')[0] || 'User'}! 👋</h1>
                     <p className="text-on-surface-variant text-sm mt-0.5">Keep your information up to date</p>
                   </div>
                 </div>
@@ -175,7 +261,14 @@ export default function BuyerDashboard() {
                   </div>
                   <div className="flex gap-3">
                     <button className="px-6 py-2.5 rounded-xl border border-outline-variant/50 text-on-surface-variant font-bold text-sm hover:bg-surface-container-high transition-colors">Cancel</button>
-                    <button className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:brightness-105 transition-all shadow-sm">Save Changes</button>
+                    <button 
+                      onClick={handleSaveProfile}
+                      disabled={isUpdating}
+                      className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:brightness-105 transition-all shadow-sm flex items-center gap-2"
+                    >
+                      {isUpdating && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                      Save Changes
+                    </button>
                   </div>
                 </div>
 
@@ -218,15 +311,15 @@ export default function BuyerDashboard() {
                       <div className="space-y-5">
                         {[
                           { label: 'Full Name', name: 'full_name', type: 'text' },
-                          { label: 'Username', name: 'username', type: 'text' },
+                          { label: 'Username', name: 'username', type: 'text', readOnly: true },
                           { label: 'Email Address', name: 'email', type: 'email' },
                           { label: 'Phone Number', name: 'phone', type: 'tel' },
                         ].map(field => (
                           <div key={field.name} className="flex flex-col gap-1.5">
                             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">{field.label}</label>
                             <input
-                              className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-2.5 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium"
-                              type={field.type} name={field.name} value={profile[field.name]} onChange={handleChange}
+                              className={`w-full border border-outline-variant/50 rounded-xl px-4 py-2.5 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium ${field.readOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-surface-container-lowest'}`}
+                              type={field.type} name={field.name} value={profile[field.name]} onChange={handleChange} readOnly={field.readOnly}
                             />
                           </div>
                         ))}
@@ -296,7 +389,7 @@ export default function BuyerDashboard() {
                 <div className="bg-primary/5 border border-primary/15 rounded-xl px-6 py-5 flex items-center gap-4">
                   <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
                   <div>
-                    <h1 className="text-xl font-black text-on-surface">Welcome back, {profile.full_name.split(' ')[0]}! 👋</h1>
+                    <h1 className="text-xl font-black text-on-surface">Welcome back, {profile.full_name?.split(' ')[0] || 'User'}! 👋</h1>
                     <p className="text-on-surface-variant text-sm mt-0.5">Here is your complete order history</p>
                   </div>
                 </div>
@@ -304,15 +397,15 @@ export default function BuyerDashboard() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-black text-on-surface tracking-tight">My Orders</h2>
-                    <p className="text-on-surface-variant mt-1 text-sm">{mockOrders.length} orders total</p>
+                    <p className="text-on-surface-variant mt-1 text-sm">{orders.length} orders total</p>
                   </div>
                 </div>
 
                 {/* Orders List */}
                 <section className="bg-surface rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
                   <div className="divide-y divide-outline-variant/20">
-                    {mockOrders.map(order => {
-                      const sc = statusConfig[order.status];
+                    {orders.length > 0 ? orders.map(order => {
+                      const sc = statusConfig[order.status] || statusConfig['Order Placed'];
                       return (
                         <div key={order.id} className="flex items-center gap-5 px-6 py-5 hover:bg-surface-container-lowest/50 transition-colors">
                           {/* Product image */}
@@ -337,7 +430,11 @@ export default function BuyerDashboard() {
                           </span>
                         </div>
                       );
-                    })}
+                    }) : (
+                      <div className="p-12 text-center text-on-surface-variant font-medium">
+                        No orders found. Start shopping to see your history!
+                      </div>
+                    )}
                   </div>
                 </section>
 

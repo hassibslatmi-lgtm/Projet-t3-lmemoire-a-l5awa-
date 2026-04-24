@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 
 import LoginScreen from '../screens/LoginScreen';
+import SignupScreen from '../screens/SignupScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import TransporterRequests from '../screens/TransporterRequests';
 import TransporterMissionDetails from '../screens/TransporterMissionDetails';
@@ -82,7 +83,10 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {userToken == null ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
