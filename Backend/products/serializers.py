@@ -12,9 +12,10 @@ class PriceHistorySerializer(serializers.ModelSerializer):
         fields = ['price', 'changed_at']
 class OfficialPriceSerializer(serializers.ModelSerializer):
     history = PriceHistorySerializer(many=True, read_only=True)
+    category_name = serializers.ReadOnlyField(source='category.name')
     class Meta:
         model = OfficialPrice
-        fields = ['id', 'product_name', 'price', 'image', 'date_set', 'created_at', 'history']
+        fields = ['id', 'category', 'category_name', 'product_name', 'price', 'image', 'date_set', 'created_at', 'history']
 
 class ProductReviewSerializer(serializers.ModelSerializer):
     buyer_name = serializers.ReadOnlyField(source='buyer.full_name')

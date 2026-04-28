@@ -128,13 +128,26 @@ def add_product(request):
     if request.user.role != 'farmer':
         return Response({'error': 'Only farmers can add products'}, status=status.HTTP_403_FORBIDDEN)
     
+    official_price_id = request.data.get('official_price_id')
     product_name = request.data.get('name')
-    if not OfficialPrice.objects.filter(product_name=product_name).exists():  #my9darch ydir add l product mkanch fl official price
+    
+    official_price = None
+    if official_price_id:
+        official_price = get_object_or_404(OfficialPrice, id=official_price_id)
+    elif product_name:
+        official_price = OfficialPrice.objects.filter(product_name=product_name).first()
+        
+    if not official_price:
         return Response({
-            'error': f'المنتج "{product_name}" غير متاح. يرجى الاختيار من القائمة الرسمية.'
+            'error': 'المنتج غير متاح. يرجى الاختيار من القائمة الرسمية.'
         }, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = ProductSerializer(data=request.data, context={'request': request})
+    data = request.data.copy() if hasattr(request.data, 'copy') else request.data
+    data['name'] = official_price.product_name
+    if official_price.category:
+        data['category'] = official_price.category.id
+
+    serializer = ProductSerializer(data=data, context={'request': request})
     if serializer.is_valid():
         serializer.save(farmer=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
