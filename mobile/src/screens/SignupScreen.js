@@ -42,11 +42,13 @@ const InputField = ({ icon, placeholder, value, onChangeText, keyboardType = 'de
 export default function SignupScreen({ navigation }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState('buyer'); 
+  const [role, setRole] = useState('farmer'); 
   
   const [formData, setFormData] = useState({
     // Shared
-    full_name: '', username: '', email: '', phone: '', address: '', sex: '', password: '',
+    full_name: '', username: '', email: '', phone: '', address: '', sex: 'M', password: '',
+    // Farmer Extra
+    farmer_card: '', farm_location: '', farm_area: '',
     // Transporter Extra
     driver_license_number: '', license_type: '', license_expiry_date: '', vehicle_name: '',
     // Buyer Extra
@@ -87,17 +89,26 @@ export default function SignupScreen({ navigation }) {
 
     setLoading(true);
     try {
-      const extra_data = role === 'transporter' 
-        ? {
-            driver_license_number: formData.driver_license_number,
-            license_type: formData.license_type,
-            license_expiry_date: formData.license_expiry_date,
-            vehicle_name: formData.vehicle_name,
-          }
-        : {
-            business_name: formData.business_name,
-            registre_commerce: formData.registre_commerce,
-          };
+      let extra_data = {};
+      if (role === 'farmer') {
+        extra_data = {
+          farmer_card: formData.farmer_card,
+          farm_location: formData.farm_location,
+          farm_area: parseFloat(formData.farm_area) || 0,
+        };
+      } else if (role === 'transporter') {
+        extra_data = {
+          driver_license_number: formData.driver_license_number,
+          license_type: formData.license_type,
+          license_expiry_date: formData.license_expiry_date,
+          vehicle_name: formData.vehicle_name,
+        };
+      } else {
+        extra_data = {
+          business_name: formData.business_name,
+          registre_commerce: formData.registre_commerce,
+        };
+      }
 
       const payload = {
         full_name: formData.full_name,
@@ -160,6 +171,13 @@ export default function SignupScreen({ navigation }) {
               {/* Role Selector */}
               <View style={styles.roleContainer}>
                 <TouchableOpacity 
+                  style={[styles.roleBtn, role === 'farmer' && styles.roleBtnActive]}
+                  onPress={() => setRole('farmer')}
+                >
+                  <Ionicons name="leaf" size={24} color={role === 'farmer' ? '#fff' : Colors.primary} />
+                  <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive]}>Farmer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
                   style={[styles.roleBtn, role === 'buyer' && styles.roleBtnActive]}
                   onPress={() => setRole('buyer')}
                 >
@@ -208,10 +226,20 @@ export default function SignupScreen({ navigation }) {
                 <Text style={styles.backText}>Back to Personal Info</Text>
               </TouchableOpacity>
 
-              <Text style={styles.stepTitle}>{role === 'buyer' ? 'Business Details' : 'Transporter Details'}</Text>
-              <Text style={styles.stepSubtitle}>{role === 'buyer' ? 'Provide your company info' : 'Provide your vehicle and license info'}</Text>
+              <Text style={styles.stepTitle}>
+                {role === 'farmer' ? 'Farm Details' : role === 'buyer' ? 'Business Details' : 'Transporter Details'}
+              </Text>
+              <Text style={styles.stepSubtitle}>
+                {role === 'farmer' ? 'Provide your agricultural credentials' : role === 'buyer' ? 'Provide your company info' : 'Provide your vehicle and license info'}
+              </Text>
 
-              {role === 'transporter' ? (
+              {role === 'farmer' ? (
+                <>
+                  <InputField icon="card-outline" placeholder="Farmer Card Number" value={formData.farmer_card} onChangeText={(v) => updateForm('farmer_card', v)} />
+                  <InputField icon="map-outline" placeholder="Farm Location" value={formData.farm_location} onChangeText={(v) => updateForm('farm_location', v)} />
+                  <InputField icon="expand-outline" placeholder="Farm Area (Hectares)" value={formData.farm_area} onChangeText={(v) => updateForm('farm_area', v)} keyboardType="numeric" />
+                </>
+              ) : role === 'transporter' ? (
                 <>
                   <InputField icon="id-card-outline" placeholder="License Number" value={formData.driver_license_number} onChangeText={(v) => updateForm('driver_license_number', v)} />
                   <InputField icon="ribbon-outline" placeholder="License Type (e.g., B, C, D)" value={formData.license_type} onChangeText={(v) => updateForm('license_type', v)} />

@@ -186,3 +186,16 @@ export const getTransporterStats = () =>
 
 export const getTransporterMissions = () => 
   request('/api/orders/transporter/missions/');
+
+// ── IoT & Livestock Oversight ────────────────────────────────────────────────
+export const getNationalSummary = () => 
+  request('/api/iot/animals/national-summary/');
+
+export const getAllAnimals = () => 
+  request('/api/iot/animals/');
+
+export const verifyAnimal = (id) => 
+  request(`/api/iot/animals/${id}/verify/`, { method: 'POST' });
+
+export const getFarmerInventory = () =>
+  request('/api/iot/animals/farmer-inventory/'); // I might need to implement this in the backend

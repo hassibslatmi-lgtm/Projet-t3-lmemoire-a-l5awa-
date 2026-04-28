@@ -17,7 +17,6 @@ import TransporterManageProfile from './components/TransporterManageProfile';
 import TransporterMissions from './components/TransporterMissions';
 import TransporterRequests from './components/TransporterRequests';
 
-
 function App() {
   return (
     <BrowserRouter>
@@ -25,6 +24,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        {/* Oversight is now a tab within AdminDashboard */}
         <Route path="/farmer/profile" element={<FarmerManageProfile />} />
         <Route path="/farmer/products" element={<FarmerManageProducts />} />
         <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
@@ -47,4 +47,3 @@ function App() {
   );
 }
 export default App;
-// trigger HMR rebuild

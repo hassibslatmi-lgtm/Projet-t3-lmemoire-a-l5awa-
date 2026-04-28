@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'products',
     'orders',
     'notifications',
+    'iot',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

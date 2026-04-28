@@ -16,6 +16,14 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 
+// IoT / Farmer Screens
+import LivestockDashboardScreen from '../screens/LivestockDashboardScreen';
+import RegisterAnimalScreen from '../screens/RegisterAnimalScreen';
+import FarmerDashboardScreen from '../screens/FarmerDashboardScreen';
+import FarmerProductsScreen from '../screens/FarmerProductsScreen';
+import FarmerProfileScreen from '../screens/FarmerProfileScreen';
+import OrderHistoryScreen from '../screens/OrderHistoryScreen';
+
 // Buyer Screens
 import BuyerDashboardScreen from '../screens/buyer/BuyerDashboardScreen';
 import ProductDetailsScreen from '../screens/buyer/ProductDetailsScreen';
@@ -119,6 +127,55 @@ function BuyerTabs() {
   );
 }
 
+// --- FARMER TABS ---
+function FarmerTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        header: () => <Header />,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'Home') iconName = focused ? 'grid' : 'grid-outline';
+          else if (route.name === 'Livestock') iconName = focused ? 'paw' : 'paw-outline';
+          else if (route.name === 'Products') iconName = focused ? 'inventory' : 'inventory-outline';
+          else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
+
+          // Mapping material icons that might not exist in Ionicons or need names
+          if (route.name === 'Products') iconName = focused ? 'basket' : 'basket-outline';
+
+          return (
+            <View style={{ alignItems: 'center' }}>
+              {focused && (
+                <View 
+                  style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.primary, position: 'absolute', top: -10 }} 
+                />
+              )}
+              <Ionicons name={iconName} size={size} color={color} />
+            </View>
+          );
+        },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: '#94A3B8',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#F1F5F9',
+          height: 85,
+          paddingBottom: 25,
+          paddingTop: 15,
+          elevation: 0,
+        },
+        headerShown: true,
+      })}
+    >
+      <Tab.Screen name="Home" component={FarmerDashboardScreen} />
+      <Tab.Screen name="Livestock" component={LivestockDashboardScreen} />
+      <Tab.Screen name="Products" component={FarmerProductsScreen} options={{ title: 'My Shop' }} />
+      <Tab.Screen name="Profile" component={FarmerProfileScreen} />
+    </Tab.Navigator>
+  );
+}
+
 // --- MAIN NAVIGATOR ---
 export default function AppNavigator() {
   const { userToken, userInfo, isLoading } = useAuth();
@@ -140,6 +197,8 @@ export default function AppNavigator() {
             {/* Render Tabs based on Role */}
             {userInfo?.role === 'buyer' ? (
               <Stack.Screen name="Main" component={BuyerTabs} />
+            ) : userInfo?.role === 'farmer' ? (
+              <Stack.Screen name="Main" component={FarmerTabs} />
             ) : (
               <Stack.Screen name="Main" component={TransporterTabs} />
             )}
@@ -152,6 +211,12 @@ export default function AppNavigator() {
             {/* Buyer Specific Stack Screens */}
             <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
+            <Stack.Screen name="RegisterAnimal" component={RegisterAnimalScreen} options={{ headerShown: false }} />
+
+            {/* Farmer Specific Stack Screens */}
+            <Stack.Screen name="FarmerProducts" component={FarmerProductsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="FarmerProfile" component={FarmerProfileScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ headerShown: false }} />
           </>
         )}
       </Stack.Navigator>

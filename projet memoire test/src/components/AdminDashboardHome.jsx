@@ -42,81 +42,119 @@ export default function AdminDashboardHome({ onNavigate }) {
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 18 ? 'Good Afternoon' : 'Good Evening';
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-surface-container-lowest">
+    <div className="flex-1 overflow-y-auto animate-in fade-in duration-700">
 
-      {/* Hero greeting */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-black text-on-surface tracking-tight">{greeting}, Admin 👋</h2>
-        <p className="text-on-surface-variant font-medium mt-1">Here's an overview of your platform's current activity.</p>
+      {/* Hero Greeting & Welcome Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-primary/10 p-8 md:p-12 mb-10 border border-primary/20">
+         <div className="relative z-10">
+            <h2 className="text-4xl font-black text-on-surface tracking-tight mb-2">{greeting}, Ministry Admin 👋</h2>
+            <p className="text-on-surface-variant font-bold text-lg max-w-xl leading-relaxed">
+              Your comprehensive command center for national agricultural data, user moderation, and livestock oversight.
+            </p>
+         </div>
+         {/* Decorative element */}
+         <div className="absolute right-[-20px] top-[-20px] opacity-10">
+            <span className="material-symbols-outlined text-[200px]" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
+         </div>
       </div>
 
-      {/* ── 3 Stat Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+      {/* ── 3 Rich Stat Cards ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {/* Total Users */}
-        <div className="bg-white rounded-2xl border border-outline-variant/30 shadow-sm p-6 flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="bg-emerald-100 p-3.5 rounded-xl flex-shrink-0">
-            <span className="material-symbols-outlined text-emerald-700 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
+        <div className="bg-white rounded-[2rem] border border-outline-variant/30 shadow-sm p-8 flex items-center gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div className="bg-emerald-100 p-4 rounded-2xl flex-shrink-0">
+            <span className="material-symbols-outlined text-emerald-700 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Users</p>
-            <p className="text-3xl font-black text-on-surface mt-0.5">1,847</p>
-            <span className="text-green-600 text-xs font-bold flex items-center gap-0.5 mt-1">
-              <span className="material-symbols-outlined text-xs">trending_up</span> +18 this week
-            </span>
+            <p className="text-xs font-black uppercase tracking-[0.1em] text-on-surface-variant mb-1">Total Users</p>
+            <p className="text-4xl font-black text-on-surface tabular-nums">1,847</p>
+            <div className="mt-2 flex items-center gap-1.5 px-2 py-0.5 bg-green-50 text-green-700 rounded-full w-fit">
+               <span className="material-symbols-outlined text-[14px] font-bold">trending_up</span>
+               <span className="text-[11px] font-black">+18 this week</span>
+            </div>
           </div>
         </div>
 
         {/* Total Volume */}
-        <div className="bg-white rounded-2xl border border-outline-variant/30 shadow-sm p-6 flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="bg-blue-100 p-3.5 rounded-xl flex-shrink-0">
-            <span className="material-symbols-outlined text-blue-700 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+        <div className="bg-white rounded-[2rem] border border-outline-variant/30 shadow-sm p-8 flex items-center gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div className="bg-blue-100 p-4 rounded-2xl flex-shrink-0">
+            <span className="material-symbols-outlined text-blue-700 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Volume</p>
-            <p className="text-3xl font-black text-on-surface mt-0.5">$1,240,500</p>
-            <span className="text-green-600 text-xs font-bold flex items-center gap-0.5 mt-1">
-              <span className="material-symbols-outlined text-xs">trending_up</span> +12.5% this month
-            </span>
+            <p className="text-xs font-black uppercase tracking-[0.1em] text-on-surface-variant mb-1">Total Volume</p>
+            <p className="text-4xl font-black text-on-surface tabular-nums">1.24M <small className="text-lg font-bold">DZD</small></p>
+            <div className="mt-2 flex items-center gap-1.5 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full w-fit">
+               <span className="material-symbols-outlined text-[14px] font-bold">trending_up</span>
+               <span className="text-[11px] font-black">+12.5% Growth</span>
+            </div>
           </div>
         </div>
 
         {/* Total Complaints */}
-        <div className="bg-white rounded-2xl border border-outline-variant/30 shadow-sm p-6 flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="bg-amber-100 p-3.5 rounded-xl flex-shrink-0">
-            <span className="material-symbols-outlined text-amber-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>report_problem</span>
+        <div className="bg-white rounded-[2rem] border border-outline-variant/30 shadow-sm p-8 flex items-center gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-l-4 border-amber-500">
+          <div className="bg-amber-100 p-4 rounded-2xl flex-shrink-0">
+            <span className="material-symbols-outlined text-amber-600 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>report_problem</span>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Complaints</p>
-            <p className="text-3xl font-black text-on-surface mt-0.5">1,284</p>
-            <span className="text-amber-600 text-xs font-bold flex items-center gap-0.5 mt-1">
-              <span className="material-symbols-outlined text-xs">schedule</span> 5 pending review
-            </span>
+            <p className="text-xs font-black uppercase tracking-[0.1em] text-on-surface-variant mb-1">Active Reports</p>
+            <p className="text-4xl font-black text-on-surface tabular-nums">1,284</p>
+            <div className="mt-2 flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full w-fit">
+               <span className="material-symbols-outlined text-[14px] font-bold">schedule</span>
+               <span className="text-[11px] font-black">5 pending review</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Section Shortcuts ── */}
-      <div className="mb-5">
-        <h3 className="text-lg font-black text-on-surface tracking-tight">Quick Access</h3>
-        <p className="text-sm text-on-surface-variant mt-0.5">Navigate directly to any management section.</p>
+      {/* ── Visual Activity Graph (Mock) ── */}
+      <div className="bg-white rounded-[2.5rem] border border-outline-variant/30 shadow-sm p-8 mb-12">
+         <div className="flex justify-between items-center mb-8">
+            <div>
+               <h3 className="text-xl font-black text-on-surface">Platform Growth Activity</h3>
+               <p className="text-sm text-on-surface-variant font-medium">Monthly engagement and registration metrics.</p>
+            </div>
+            <div className="flex gap-2">
+               <span className="px-4 py-1.5 bg-surface-container-low border border-outline-variant/50 rounded-full text-xs font-bold text-on-surface-variant">Last 30 Days</span>
+            </div>
+         </div>
+         {/* Mock Graph Visualization */}
+         <div className="h-48 w-full flex items-end justify-between px-4 gap-2">
+            {[30, 45, 60, 40, 85, 70, 95, 110, 80, 120, 140, 160].map((h, i) => (
+               <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                  <div className="w-full bg-primary/10 rounded-t-lg group-hover:bg-primary transition-all duration-500 relative" style={{ height: `${h}px` }}>
+                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                        {h * 10}
+                     </div>
+                  </div>
+                  <span className="text-[10px] font-black text-on-surface-variant opacity-50 uppercase">{['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</span>
+               </div>
+            ))}
+         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+
+      {/* ── Section Shortcuts ── */}
+      <div className="mb-6 flex justify-between items-center">
+         <div>
+            <h3 className="text-2xl font-black text-on-surface tracking-tight">Management Shortcuts</h3>
+            <p className="text-sm text-on-surface-variant font-medium">Quickly jump to specific control modules.</p>
+         </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {SECTION_SHORTCUTS.map(s => (
           <button
             key={s.key}
             onClick={() => onNavigate(s.key)}
-            className="group bg-white rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 text-left cursor-pointer overflow-hidden"
+            className="group bg-white rounded-[2rem] border border-outline-variant/30 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-left cursor-pointer overflow-hidden flex flex-col"
           >
-            {/* Top gradient strip */}
-            <div className={`h-2 w-full bg-gradient-to-r ${s.accent}`} />
-            <div className="p-6">
-              <div className={`${s.lightBg} ${s.lightText} p-3 rounded-xl w-fit mb-4`}>
-                <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+            <div className={`h-2.5 w-full bg-gradient-to-r ${s.accent}`} />
+            <div className="p-8 flex-1 flex flex-col">
+              <div className={`${s.lightBg} ${s.lightText} p-4 rounded-2xl w-fit mb-6 shadow-sm`}>
+                <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
               </div>
-              <h4 className="font-black text-on-surface text-base mb-1 group-hover:text-primary transition-colors">{s.label}</h4>
-              <p className="text-xs text-on-surface-variant leading-relaxed">{s.description}</p>
-              <div className="mt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                Go to {s.label} <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <h4 className="font-black text-on-surface text-xl mb-2 group-hover:text-primary transition-colors">{s.label}</h4>
+              <p className="text-sm text-on-surface-variant font-medium leading-relaxed mb-6 flex-1">{s.description}</p>
+              <div className="mt-auto flex items-center gap-2 text-sm font-black text-primary group-hover:translate-x-2 transition-transform">
+                Enter Module <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </div>
             </div>
           </button>

@@ -123,4 +123,31 @@ export const placeOrder = async (orderData) => {
   return response.data;
 };
 
+// --- IoT / Livestock API Endpoints ---
+export const getAnimals = async () => {
+  const response = await api.get('/api/iot/animals/');
+  return response.data;
+};
+
+export const registerAnimal = async (animalData) => {
+  const response = await api.post('/api/iot/animals/', animalData);
+  return response.data;
+};
+
+// --- Farmer API Endpoints ---
+export const getFarmerStats = async () => {
+  const response = await api.get('/api/orders/farmer-stats/');
+  return response.data;
+};
+
+export const getFarmerOrders = async () => {
+  const response = await api.get('/api/orders/farmer/orders/');
+  return response.data;
+};
+
+export const getFarmerProducts = async () => {
+  const response = await api.get('/api/products/farmer/products/');
+  return response.data;
+};
+
 export default api;

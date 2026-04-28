@@ -74,7 +74,7 @@ export default function LoginScreen({ navigation }) {
           <Ionicons name="leaf" size={48} color="#fff" />
         </View>
         <Text style={styles.title}>AgriGov</Text>
-        <Text style={styles.subtitle}>Transporter Portal</Text>
+        <Text style={styles.subtitle}>Unified Access Portal</Text>
       </View>
 
       <View style={styles.form}>
