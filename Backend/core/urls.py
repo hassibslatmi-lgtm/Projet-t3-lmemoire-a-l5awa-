@@ -16,10 +16,25 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
+def home(request):
+    return JsonResponse({
+        "status": "AgriGov API is running",
+        "version": "1.0.0",
+        "endpoints": {
+            "admin": "/admin/",
+            "users": "/users/",
+            "products": "/api/products/",
+            "orders": "/api/orders/",
+            "notifications": "/api/notifications/"
+        }
+    })
+
 urlpatterns = [
+    path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')), 
     path('api/products/', include('products.urls')),

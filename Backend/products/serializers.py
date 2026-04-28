@@ -31,6 +31,7 @@ class ProductSerializer(serializers.ModelSerializer):
     
     # حقل إضافي لجلب السعر الرسمي آلياً من جدول OfficialPrice
     official_price = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
     
     reviews = ProductReviewSerializer(many=True, read_only=True)
 
@@ -38,11 +39,14 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'farmer', 'farmer_name', 'category', 'category_name', 
-            'name', 'description', 'quantity', 'image', 'official_price', 'reviews', 'created_at'
+            'name', 'description', 'quantity', 'image', 'official_price', 'price', 'reviews', 'created_at'
         ]
         read_only_fields = ['farmer']
 
     def get_official_price(self, obj):
         # البحث عن السعر بناءً على اسم المنتج
         price_entry = OfficialPrice.objects.filter(product_name=obj.name).first()
-        return price_entry.price if price_entry else "N/A" 
+        return float(price_entry.price) if price_entry else 0
+
+    def get_price(self, obj):
+        return self.get_official_price(obj)

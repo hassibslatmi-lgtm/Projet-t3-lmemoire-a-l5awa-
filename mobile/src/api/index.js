@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Replace with your local IP for physical device testing
 // Use 10.0.2.2 for Android Emulator
-const BASE_URL = 'http://192.168.1.7:8000';
+const BASE_URL = 'http://192.168.1.12:8000';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -11,6 +11,17 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export const fixImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/150';
+  if (url.startsWith('http://127.0.0.1') || url.startsWith('http://localhost')) {
+    return url.replace(/http:\/\/(127\.0\.0\.1|localhost):8000/, BASE_URL);
+  }
+  if (url.startsWith('http://192.168.1.7')) {
+    return url.replace('http://192.168.1.7:8000', BASE_URL);
+  }
+  return url;
+};
 
 // Request interceptor to add the token
 api.interceptors.request.use(

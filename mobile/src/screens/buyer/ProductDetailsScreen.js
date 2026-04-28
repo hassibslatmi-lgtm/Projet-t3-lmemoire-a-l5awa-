@@ -8,18 +8,26 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Dimensions
+  Dimensions,
+  Modal,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
+import { placeOrder } from '../../api';
 
 const { width } = Dimensions.get('window');
 
-
+// IP fix utility (keeping it here as a backup, though it's also in API)
 const fixImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/400';
+  const BASE_IP = '192.168.1.12';
   if (url.startsWith('http://127.0.0.1')) {
-    return url.replace('http://127.0.0.1:8000', 'http://192.168.1.7:8000');
+    return url.replace('http://127.0.0.1:8000', `http://${BASE_IP}:8000`);
+  }
+  if (url.startsWith('http://192.168.1.7')) {
+    return url.replace('http://192.168.1.7:8000', `http://${BASE_IP}:8000`);
   }
   return url;
 };
@@ -27,15 +35,34 @@ const fixImageUrl = (url) => {
 export default function ProductDetailsScreen({ route, navigation }) {
   const { product } = route.params;
   const [quantity, setQuantity] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
 
-  const handleBuyNow = () => {
-    const total_price = product.price * quantity;
-    // Navigate directly to Checkout passing the product, selected quantity, and calculated total_price
-    navigation.navigate('Checkout', { 
-      product: product, 
-      quantity: quantity,
-      total_price: total_price
-    });
+  // Ensure price is a number
+  const productPrice = parseFloat(product.price || product.official_price || 0);
+  const totalPrice = (productPrice * quantity).toFixed(2);
+
+  const handleConfirmOrder = async () => {
+    setOrderLoading(true);
+    try {
+      // For this example, we'll use a placeholder address/phone 
+      // or redirect to a screen that asks for them.
+      // But the user asked for 'Buy Now' to call the endpoint after confirmation.
+      // So let's assume we need to prompt for address or use a default.
+      
+      // Navigate to Checkout which already handles address/phone input
+      setShowModal(false);
+      navigation.navigate('Checkout', { 
+        product: product, 
+        quantity: quantity,
+        total_price: parseFloat(totalPrice)
+      });
+    } catch (error) {
+      console.error('Order error:', error);
+      Alert.alert('Error', 'Failed to place order.');
+    } finally {
+      setOrderLoading(false);
+    }
   };
 
   return (
@@ -54,12 +81,12 @@ export default function ProductDetailsScreen({ route, navigation }) {
         {/* Content */}
         <View style={styles.detailsContainer}>
           <View style={styles.headerRow}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.category}>{product.category_name || 'Category'}</Text>
               <Text style={styles.title}>{product.name}</Text>
             </View>
             <View style={styles.priceTag}>
-              <Text style={styles.price}>{product.price} DZD / unit</Text>
+              <Text style={styles.price}>{productPrice} DA</Text>
             </View>
           </View>
 
@@ -94,8 +121,8 @@ export default function ProductDetailsScreen({ route, navigation }) {
           </View>
           
           <View style={styles.liveTotalContainer}>
-            <Text style={styles.liveTotalLabel}>Total Price</Text>
-            <Text style={styles.liveTotalValue}>{(product.price * quantity).toFixed(2)} DZD</Text>
+            <Text style={styles.liveTotalLabel}>Total Amount</Text>
+            <Text style={styles.liveTotalValue}>{totalPrice} DA</Text>
           </View>
         </View>
       </ScrollView>
@@ -103,15 +130,66 @@ export default function ProductDetailsScreen({ route, navigation }) {
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total Price</Text>
-          <Text style={styles.totalValueColored}>{(product.price * quantity).toFixed(2)} DZD</Text>
+          <Text style={styles.totalLabel}>Grand Total</Text>
+          <Text style={styles.totalValueColored}>{totalPrice} DA</Text>
         </View>
-        <TouchableOpacity style={styles.addToCartBtn} onPress={handleBuyNow}>
+        <TouchableOpacity style={styles.addToCartBtn} onPress={() => setShowModal(true)}>
           <Ionicons name="flash" size={20} color="#fff" />
           <Text style={styles.addToCartText}>Buy Now</Text>
         </TouchableOpacity>
-
       </View>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Order Summary</Text>
+            
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Product:</Text>
+              <Text style={styles.summaryValue}>{product.name}</Text>
+            </View>
+            
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Unit Price:</Text>
+              <Text style={styles.summaryValue}>{productPrice} DA</Text>
+            </View>
+            
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Quantity:</Text>
+              <Text style={styles.summaryValue}>{quantity}</Text>
+            </View>
+            
+            <View style={styles.divider} />
+            
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabelBold}>Total Amount:</Text>
+              <Text style={styles.summaryValueBold}>{totalPrice} DA</Text>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.cancelBtn} 
+                onPress={() => setShowModal(false)}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.confirmBtn} 
+                onPress={handleConfirmOrder}
+              >
+                <Text style={styles.confirmBtnText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -304,5 +382,85 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 25,
+    paddingBottom: 40,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1E293B',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  summaryLabel: {
+    fontSize: 16,
+    color: '#64748B',
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  summaryLabelBold: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  summaryValueBold: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: Colors.primary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 15,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    marginRight: 10,
+  },
+  cancelBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  confirmBtn: {
+    flex: 2,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+  },
+  confirmBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
   },
 });

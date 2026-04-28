@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     
     // Diagnostic log
-    console.log(`Attempting login to: ${email} at http://192.168.1.7:8000/users/login/`);
+    console.log(`Attempting login to: ${email} at http://192.168.1.12:8000/users/login/`);
 
     try {
       await login(email, password);
@@ -47,7 +47,7 @@ export default function LoginScreen({ navigation }) {
         // Diagnostic fetch test
         try {
           console.log('Running diagnostic fetch test...');
-          const test = await fetch('http://192.168.1.7:8000/users/login/', {
+          const test = await fetch('http://192.168.1.12:8000/users/login/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })

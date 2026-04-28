@@ -19,7 +19,10 @@ import { searchProducts } from '../../api';
 const fixImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/150';
   if (url.startsWith('http://127.0.0.1')) {
-    return url.replace('http://127.0.0.1:8000', 'http://192.168.1.7:8000');
+    return url.replace('http://127.0.0.1:8000', 'http://192.168.1.12:8000');
+  }
+  if (url.startsWith('http://192.168.1.7')) {
+    return url.replace('http://192.168.1.7:8000', 'http://192.168.1.12:8000');
   }
   return url;
 };
@@ -66,7 +69,7 @@ export default function BuyerDashboardScreen({ navigation }) {
         <Text style={styles.categoryName} numberOfLines={1}>{item.category_name || 'Category'}</Text>
         <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
         <View style={styles.priceRow}>
-          <Text style={styles.price}>{item.price} DZD</Text>
+          <Text style={styles.price}>{item.price} DA</Text>
           {item.quantity > 0 ? (
             <Text style={styles.inStock}>In Stock</Text>
           ) : (
