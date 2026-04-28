@@ -7,7 +7,8 @@ import {
   getFarmerStats, 
   getFarmerOrders,
   getFarmerProducts,
-  getFarmerProfile
+  getFarmerProfile,
+  getAllAnimals
 } from '../services/api';
 
 const BASE_URL = 'http://127.0.0.1:8000';
@@ -29,6 +30,7 @@ export default function FarmerDashboard() {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentProducts, setRecentProducts] = useState([]); 
+  const [livestock, setLivestock] = useState([]); // IoT Tracking
   const [profile, setProfile] = useState({ full_name: '', photo: null });
   const [loading, setLoading] = useState(true);
 
@@ -39,38 +41,51 @@ export default function FarmerDashboard() {
   };
 
   // --- Fetch Data from Backend ---
+  const fetchDashboardData = async () => {
+    try {
+      const [statsData, ordersData, productsData, profileData, animalsData] = await Promise.all([
+          getFarmerStats(),
+          getFarmerOrders(),
+          getFarmerProducts(),
+          getFarmerProfile(),
+          getAllAnimals()
+      ]);
+
+      setStats({
+        totalProducts: statsData.total_products || 0,
+        totalOrders: statsData.total_orders || 0,
+        totalRevenue: `${statsData.total_revenue || 0} DZD`,
+      });
+
+      setRecentOrders(ordersData || []);
+      setRecentProducts(productsData || []);
+      setLivestock(animalsData || []);
+      setProfile({
+          full_name: profileData.full_name || profileData.username,
+          photo: getImageUrl(profileData.profile_photo_url || profileData.profile_photo)
+      });
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching farmer dashboard data:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const [statsData, ordersData, productsData, profileData] = await Promise.all([
-            getFarmerStats(),
-            getFarmerOrders(),
-            getFarmerProducts(),
-            getFarmerProfile()
-        ]);
-
-        setStats({
-          totalProducts: statsData.total_products || 0,
-          totalOrders: statsData.total_orders || 0,
-          totalRevenue: `${statsData.total_revenue || 0} DZD`,
-        });
-
-        setRecentOrders(ordersData || []);
-        setRecentProducts(productsData || []);
-        setProfile({
-            full_name: profileData.full_name || profileData.username,
-            photo: getImageUrl(profileData.profile_photo_url || profileData.profile_photo)
-        });
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching farmer dashboard data:", error);
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
+    // Real-time Monitoring: Polling every 10 seconds
+    const interval = setInterval(fetchDashboardData, 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  const openInMap = (lat, lng) => {
+    if (!lat || !lng) {
+      alert("GPS Signal lost. Cannot pinpoint location.");
+      return;
+    }
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+  };
 
   const handleLogout = () => {
     clearAuth();
@@ -157,15 +172,21 @@ export default function FarmerDashboard() {
                      <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                   </div>
                </div>
-               <button onClick={() => setShowComplaintModal(true)} className="relative z-10 px-6 py-3 bg-red-600/10 text-red-700 border border-red-200/50 font-bold rounded-xl hover:bg-red-600/20 transition-all flex items-center gap-2 cursor-pointer">
-                  <span className="material-symbols-outlined text-[20px]">report_problem</span>
-                  Send Complaint
-               </button>
+               <div className="flex gap-3">
+                  <div className="px-4 py-2 bg-white rounded-full border border-primary/20 flex items-center gap-2 text-xs font-bold text-primary animate-pulse">
+                     <span className="w-2 h-2 bg-primary rounded-full"></span>
+                     LIVE GPS TRACKING
+                  </div>
+                  <button onClick={() => setShowComplaintModal(true)} className="px-6 py-3 bg-red-600/10 text-red-700 border border-red-200/50 font-bold rounded-xl hover:bg-red-600/20 transition-all flex items-center gap-2 cursor-pointer">
+                     <span className="material-symbols-outlined text-[20px]">report_problem</span>
+                     Send Complaint
+                  </button>
+               </div>
             </div>
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm hover:border-primary transition-colors">
                   <div className="p-3 bg-blue-100 text-blue-600 rounded-xl w-fit mb-4">
                      <span className="material-symbols-outlined">inventory</span>
                   </div>
@@ -173,20 +194,91 @@ export default function FarmerDashboard() {
                   <h3 className="text-3xl font-black text-on-surface">{stats.totalProducts}</h3>
                </div>
                
-               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
-                  <div className="p-3 bg-purple-100 text-purple-600 rounded-xl w-fit mb-4">
-                     <span className="material-symbols-outlined">shopping_cart_checkout</span>
+               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm hover:border-primary transition-colors">
+                  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl w-fit mb-4">
+                     <span className="material-symbols-outlined">satellite_alt</span>
                   </div>
-                  <p className="text-on-surface-variant text-sm font-bold uppercase mb-1">Total Orders</p>
-                  <h3 className="text-3xl font-black text-on-surface">{stats.totalOrders}</h3>
+                  <p className="text-on-surface-variant text-sm font-bold uppercase mb-1">Livestock Heads</p>
+                  <h3 className="text-3xl font-black text-on-surface">{livestock.length}</h3>
                </div>
 
-               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
-                  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl w-fit mb-4">
+               <div className="bg-surface p-6 rounded-2xl border border-outline-variant/30 shadow-sm hover:border-primary transition-colors">
+                  <div className="p-3 bg-purple-100 text-purple-600 rounded-xl w-fit mb-4">
                      <span className="material-symbols-outlined">payments</span>
                   </div>
                   <p className="text-on-surface-variant text-sm font-bold uppercase mb-1">Total Revenue</p>
                   <h3 className="text-3xl font-black text-on-surface">{stats.totalRevenue}</h3>
+               </div>
+            </div>
+
+            {/* --- GPS Livestock Tracking Section (Live Polling) --- */}
+            <div className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden mb-8">
+               <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center">
+                  <h2 className="text-lg font-black text-on-surface flex items-center gap-2">
+                     <span className="material-symbols-outlined text-primary">broadcast_on_home</span>
+                     Real-Time GPS Monitoring
+                  </h2>
+                  <div className="flex items-center gap-2 text-[10px] font-black text-on-surface-variant bg-surface-container-high px-3 py-1 rounded-full">
+                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span>
+                     AUTO-REFRESHING EVERY 10S
+                  </div>
+               </div>
+               <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                     <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold">
+                        <tr>
+                           <th className="px-6 py-4">RFID Tag</th>
+                           <th className="px-6 py-4">Current Location</th>
+                           <th className="px-6 py-4">Last Updated</th>
+                           <th className="px-6 py-4">Security</th>
+                           <th className="px-6 py-4 text-right">Navigation</th>
+                        </tr>
+                     </thead>
+                     <tbody className="divide-y divide-outline-variant/20">
+                        {livestock.length === 0 ? (
+                           <tr><td colSpan="5" className="text-center py-6 opacity-50 font-bold">Waiting for GPS signal...</td></tr>
+                        ) : (
+                           livestock.map(animal => (
+                              <tr key={animal.id} className="hover:bg-surface-container-lowest transition-colors">
+                                 <td className="px-6 py-4 font-mono font-bold text-primary">{animal.rfid_tag}</td>
+                                 <td className="px-6 py-4">
+                                    <div className="flex items-center gap-1 font-bold text-on-surface">
+                                       <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                                       {animal.region}
+                                    </div>
+                                    <div className="text-[10px] text-on-surface-variant ml-5 font-medium">{animal.location_name || 'Locating...'}</div>
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    <div className="text-xs font-bold text-on-surface">{new Date(animal.updated_at).toLocaleTimeString()}</div>
+                                    <div className="text-[10px] text-on-surface-variant">Today</div>
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    {animal.suspicious_movement ? (
+                                       <div className="bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-1 w-fit animate-pulse">
+                                          <span className="material-symbols-outlined text-[12px]">warning</span>
+                                          SUSPICIOUS
+                                       </div>
+                                    ) : (
+                                       <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-1 w-fit">
+                                          <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                                          SECURE
+                                       </div>
+                                    )}
+                                 </td>
+                                 <td className="px-6 py-4 text-right">
+                                    <button 
+                                      onClick={() => openInMap(animal.latitude, animal.longitude)}
+                                      className="bg-primary text-white px-4 py-1.5 rounded-lg text-[10px] font-black hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer flex items-center gap-1 ml-auto"
+                                    >
+                                       <span className="material-symbols-outlined text-[14px]">map</span>
+                                       VIEW ON MAP
+                                    </button>
+                                 </td>
+                              </tr>
+                           ))
+                        )}
+                     </tbody>
+                  </table>
                </div>
             </div>
 

@@ -4,19 +4,12 @@ import random
 
 # --- CONFIGURATION ---
 BASE_URL = "http://127.0.0.1:8000"
-# Get a token from your login response or create a superuser/farmer token
-TOKEN = "YOUR_FARMER_OR_ADMIN_TOKEN_HERE" 
-ANIMAL_ID = 1  # Change this to an existing animal ID in your database
+TOKEN = "e4f5c9a2d1c37ae3201ebb54ee0feb24dc5f1a22" 
+ANIMAL_ID = 2  # Updated to ID 2 as requested
 
-# Starting coordinates (Set these to a realistic starting point)
-# Example: Algiers region
-current_lat = 36.7538
-current_lng = 3.0588
-
-HEADERS = {
-    "Authorization": f"Token {TOKEN}",
-    "Content-Type": "application/json"
-}
+# Starting coordinates (Annaba)
+current_lat = 36.9000
+current_lng = 7.7500
 
 def update_iot_location(animal_id, lat, lng):
     url = f"{BASE_URL}/api/iot/animals/{animal_id}/update-location/"
@@ -25,17 +18,22 @@ def update_iot_location(animal_id, lat, lng):
         "longitude": lng
     }
     
+    headers = {
+        "Authorization": f"Token {TOKEN}",
+        "Content-Type": "application/json"
+    }
+    
     try:
-        response = requests.patch(url, json=payload, headers=HEADERS)
+        response = requests.patch(url, json=payload, headers=headers)
+        
         if response.status_code == 200:
             data = response.json()
-            print(f"[{time.strftime('%H:%M:%S')}] ✅ Success!")
-            print(f"   📍 New Location: {lat:.5f}, {lng:.5f}")
-            print(f"   🚨 Suspicious Movement: {'YES' if data.get('suspicious_movement') else 'No'}")
-            if 'distance_moved_km' in data:
-                print(f"   📏 Distance: {data['distance_moved_km']:.2f} km")
-        elif response.status_code == 401:
-            print("❌ Error: Unauthorized. Check your TOKEN.")
+            # Explicitly showing which ID was updated in the simulator log
+            print(f"[{time.strftime('%H:%M:%S')}] ✅ IoT Update Success (Target ID #{animal_id})!")
+            print(f"   🐾 DB Returned ID: {data.get('internal_id', 'Unknown')}")
+            print(f"   🌍 Location: {data.get('region', 'Unknown')} ({data.get('location_name', 'Unknown')})")
+        elif response.status_code == 404:
+            print(f"❌ Error 404: Animal ID #{animal_id} not found in the database.")
         else:
             print(f"❌ Error {response.status_code}: {response.text}")
     except Exception as e:
@@ -43,24 +41,22 @@ def update_iot_location(animal_id, lat, lng):
 
 def simulate():
     global current_lat, current_lng
-    print(f"🚀 Starting Smart Ear Tag Simulator for Animal #{ANIMAL_ID}")
-    print("Press Ctrl+C to stop.")
+    print(f"🚀 AgriGov IoT Simulator: Testing Animal #{ANIMAL_ID} in Annaba")
+    print(f"📡 API URL: {BASE_URL}/api/iot/animals/{ANIMAL_ID}/update-location/")
+    print("-------------------------------------------------------")
     
     while True:
-        # Simulate realistic grazing movement (small random change)
-        # 0.0001 is roughly 10 meters
-        current_lat += random.uniform(-0.0002, 0.0002)
-        current_lng += random.uniform(-0.0002, 0.0002)
+        # Small movement
+        current_lat += random.uniform(-0.0001, 0.0001)
+        current_lng += random.uniform(-0.0001, 0.0001)
         
-        # Randomly trigger suspicious movement (5% chance)
+        # Simulate suspicious transport
         if random.random() < 0.05:
-            print("\n⚠️ Simulating a fast move (Truck transport)...")
-            current_lat += 0.15  # ~16km jump
-            current_lng += 0.15
+            print("\n⚠️ ALERT: Rapid Transport Simulated!")
+            current_lat += 0.05
+            current_lng += 0.05
             
         update_iot_location(ANIMAL_ID, current_lat, current_lng)
-        
-        # Send update every 10 seconds (adjust as needed)
         time.sleep(10)
 
 if __name__ == "__main__":
