@@ -138,6 +138,8 @@ export const updateFarmerProfile = (formData) => {
 // ── Farmer Products ───────────────────────────────────────────────────────────
 export const getFarmerProducts = () => request('/api/products/farmer/products/');
 
+export const getOfficialProducts = () => request('/api/products/official-prices/');
+
 export const addFarmerProduct = (formData) => {
     const token = getToken();
     return fetch(`${BASE_URL}/api/products/farmer/products/add/`, {

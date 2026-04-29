@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) {
+export default function SetPriceModal({ isOpen, onClose, onSave, initialData, categories = [] }) {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [category, setCategory] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const fileInputRef = useRef(null);
 
@@ -11,10 +12,12 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
       if (initialData) {
         setName(initialData.product_name || '');
         setPrice(initialData.price || '');
+        setCategory(initialData.category || '');
         setImagePreview(initialData.image || '');
       } else {
         setName('');
         setPrice('');
+        setCategory('');
         setImagePreview('');
       }
     }
@@ -37,6 +40,9 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
     formData.append('product_name', name);
     // تحويل السعر لرقم لضمان التوافق مع DecimalField في Django
     formData.append('price', parseFloat(price));
+    if (category) {
+      formData.append('category', category);
+    }
     
     // إرسال الصورة فقط إذا تم اختيار ملف جديد
     if (fileInputRef.current && fileInputRef.current.files[0]) {
@@ -66,6 +72,16 @@ export default function SetPriceModal({ isOpen, onClose, onSave, initialData }) 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-700">Product Name</label>
               <input required value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-600/50 focus:border-green-600 text-sm outline-none" placeholder="e.g. Organic Tomatoes" type="text" />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Category</label>
+              <select required value={category} onChange={e => setCategory(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-600/50 focus:border-green-600 text-sm outline-none">
+                <option value="">Select Category</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1.5">

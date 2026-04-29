@@ -14,6 +14,7 @@ const STATIC_TRANSACTIONS = [
 
 export default function AdminManagePrices() {
   const [products, setProducts] = useState([]); 
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -23,8 +24,12 @@ export default function AdminManagePrices() {
   const fetchPrices = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}/api/products/official-prices/`);
-      setProducts(res.data);
+      const [pricesRes, catRes] = await Promise.all([
+        axios.get(`${BASE_URL}/api/products/official-prices/`),
+        axios.get(`${BASE_URL}/api/products/categories/`)
+      ]);
+      setProducts(pricesRes.data);
+      setCategories(catRes.data);
     } catch (err) {
       console.error("Error fetching prices:", err);
     } finally {
@@ -211,6 +216,7 @@ const handleSavePrice = async (formData) => {
         onClose={() => setIsModalOpen(false)} 
         onSave={handleSavePrice} 
         initialData={editingProduct} 
+        categories={categories}
       />
 
       {/* History Modal */}

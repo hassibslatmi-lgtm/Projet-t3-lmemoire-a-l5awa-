@@ -6,7 +6,7 @@ import * as Notifications from 'expo-notifications';
 import { useAuth } from './AuthContext';
 import { Colors } from '../theme/colors';
 import * as NavigationService from '../navigation/NavigationService'; 
-import { api, updatePushToken } from '../api';
+import api, { updatePushToken } from '../api';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -60,8 +60,8 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       stopPolling();
       stopAlarm();
-      if (notificationListener.current) Notifications.removeNotificationSubscription(notificationListener.current);
-      if (responseListener.current) Notifications.removeNotificationSubscription(responseListener.current);
+      if (notificationListener.current) notificationListener.current.remove();
+      if (responseListener.current) responseListener.current.remove();
     };
   }, [userToken, userInfo]);
 

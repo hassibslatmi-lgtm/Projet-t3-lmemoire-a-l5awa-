@@ -27,6 +27,7 @@ class Product(models.Model):
 # ... (Category and Product models stay the same)
 
 class OfficialPrice(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     product_name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='official_prices/', null=True, blank=True)

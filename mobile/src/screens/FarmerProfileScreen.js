@@ -13,8 +13,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { getUserProfile, fixImageUrl } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function FarmerProfileScreen({ navigation }) {
+  const { logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +89,7 @@ export default function FarmerProfileScreen({ navigation }) {
           <Text style={styles.editButtonText}>Edit Profile Details</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={() => Alert.alert('Logout', 'Logging out...')}>
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>

@@ -1,0 +1,57 @@
+[33m09cf11d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m "add new product"
+[33m26706be[m "started iot"
+[33me91c988[m "famer mobile application"
+[33m65e16fe[m "complete buyer mobile"
+[33m1b8cdaf[m "started with buyer mobile"
+[33ma17e1ec[m "final transporter"
+[33m19248b7[m "notfication system"
+[33m9e1ad91[m "update transporter"
+[33m44b0ced[m "transporterMobile"
+[33mde4e6d4[m "start with mobile application(Transporter)"
+[33m78314d7[m "order for buyer and farmer stock B9at ghir tlinki dashbord ta3 l buyer w profile ta3 transporter"
+[33mfccad12[m transport Connected
+[33m470bcc6[m "update status of order"
+[33m6b98d66[m "get requast accept and reject"
+[33m1b5c7a9[m "farmer dashbord"
+[33m83af4c2[m "get requast (transporetr) version test"
+[33m9401816[m transportation fee w cotact a abdo l MCA
+[33mf4ca097[m transporter
+[33m272cc4a[m abdo chof tra ida ymchi
+[33m74da90d[m ani drt t3 shop , w drt icon t3 profil tdik ll dashboard
+[33m72b0076[m "backend+frontend (buyer+farmer) review"
+[33m18d448a[m "linkage Dashbord l farmer with total payment and products , orders"
+[33md6f4e11[m l5er chof comment majrbthach aw l home page ba9i tnak
+[33m201236f[m "linkage payment+home+category+productDetails"
+[33md9525f6[m Merge branch 'main' of https://github.com/hassibslatmi-lgtm/Projet-t3-lmemoire-a-l5awa-
+[33m6ee372f[m "place order with payment"
+[33m1d77ba0[m payment page
+[33m73ba8af[m abdo ani tal3t front jdid kan payment srali problem
+[33m05bdb5e[m "search product with test"
+[33ma6698d3[m "search product"
+[33m02bb98e[m hacib dir migration 9bal ma dir run(history price)
+[33mcb68ae1[m عبدو الباسورد تاع DB بدلها لتاعك برك لباقي مريقل
+[33me7fad87[m "Manage product"
+[33m92a697f[m "Manage profile"
+[33m5477ad3[m Merge branch 'main' of https://github.com/hassibslatmi-lgtm/Projet-t3-lmemoire-a-l5awa-
+[33ma86bc93[m manage profile w product aw lback aw mrigl ma7arbtoch
+[33m0654f42[m "the final"
+[33m36e2c25[m aw a5er 7aja
+[33md75a6e1[m "manage price (date)"
+[33m762a159[m "Admin linked with backend"
+[33mdf2ef7f[m Merge branch 'main' of https://github.com/hassibslatmi-lgtm/Projet-t3-lmemoire-a-l5awa-
+[33m895df24[m haho ifrz lbackend
+[33m8c92630[m mange prices a5er 7aja
+[33mb096d20[m Organized files into Backend folder for project
+[33m3ba92a4[m admin validate
+[33m60131ab[m category a5er hja
+[33m76f6663[m admincategorie kolch mafroz
+[33m7171935[m category admin t9alch a abdo
+[33mfeb3692[m haw drt deblocki nzid chwaya n7ot lo5rin
+[33m6f8369a[m how abdo gotlk hacib ladik la 5awfa 3lik
+[33m03dff31[m Remove backend files from root to reorganize
+[33m42bfc0d[m Initial commit: backend signup+login
+[33m2a81ca0[m Fix Signup and Login with Backend connection
+[33m82c74c6[m haho abdo tal4o
+[33m1835add[m Add files via upload
+[33mfb62159[m this the project main files
+[33m69088ed[m Initial commit

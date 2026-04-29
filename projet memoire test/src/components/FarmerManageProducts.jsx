@@ -8,7 +8,8 @@ import {
   updateFarmerProduct, 
   deleteFarmerProduct, 
   getCategories, 
-  getFarmerProfile 
+  getFarmerProfile,
+  getOfficialProducts
 } from '../services/api';
 
 export default function FarmerManageProducts() {
@@ -18,6 +19,7 @@ export default function FarmerManageProducts() {
   // --- States ---
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [officialProducts, setOfficialProducts] = useState([]);
   const [userProfile, setUserProfile] = useState({ 
     full_name: '', 
     username: '',
@@ -45,10 +47,10 @@ export default function FarmerManageProducts() {
     return `http://localhost:8000${path}`;
   };
 
-  // --- Logic: Get Price from Category (For Add Form real-time preview) ---
-  const getPriceFromCategory = (categoryId) => {
-    const category = categories.find(c => c.id === parseInt(categoryId));
-    return category ? category.official_price : '0.00';
+  // --- Logic: Get Price from Official Product ---
+  const getPriceFromOfficialProduct = (productName) => {
+    const op = officialProducts.find(o => o.product_name === productName);
+    return op ? op.price : '0.00';
   };
 
   // --- Fetch Initial Data ---
@@ -58,13 +60,15 @@ export default function FarmerManageProducts() {
 
   const fetchInitialData = async () => {
     try {
-      const [prodRes, catRes, profileRes] = await Promise.all([
+      const [prodRes, catRes, profileRes, officialRes] = await Promise.all([
         getFarmerProducts(),
         getCategories(),
-        getFarmerProfile() 
+        getFarmerProfile(),
+        getOfficialProducts()
       ]);
       setProducts(prodRes || []);
       setCategories(catRes || []);
+      setOfficialProducts(officialRes || []);
       
       setUserProfile({
         full_name: profileRes.full_name || `${profileRes.first_name} ${profileRes.last_name}`,
@@ -88,7 +92,16 @@ export default function FarmerManageProducts() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'name') {
+        const op = officialProducts.find(o => o.product_name === value);
+        if (op && op.category) {
+          updated.category = op.category;
+        }
+      }
+      return updated;
+    });
   };
 
   const handleImageChange = (e) => {
@@ -258,17 +271,20 @@ export default function FarmerManageProducts() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Product Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleFormChange} placeholder="e.g. Organic Red Tomatoes" className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 outline-none font-medium text-on-surface" />
+                <select name="name" value={formData.name} onChange={handleFormChange} className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 outline-none font-medium text-on-surface appearance-none">
+                  <option value="" disabled>Select Official Product</option>
+                  {officialProducts.map(op => <option key={op.id} value={op.product_name}>{op.product_name}</option>)}
+                </select>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Category</label>
-                  <select name="category" value={formData.category} onChange={handleFormChange} className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 outline-none font-medium text-on-surface appearance-none">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Category (Auto-selected)</label>
+                  <select name="category" value={formData.category} onChange={handleFormChange} disabled className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 outline-none font-medium text-on-surface appearance-none opacity-70 cursor-not-allowed">
+                    <option value="" disabled>Auto-filled</option>
                     {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                   </select>
-                  {/* عرض السعر التقريبي للفئة قبل الحفظ */}
                   <p className="mt-2 text-xs font-bold text-green-600">
-                    Category Base Price: {getPriceFromCategory(formData.category)} DZD/KG
+                    Base Price: {getPriceFromOfficialProduct(formData.name)} DZD/KG
                   </p>
                 </div>
                 <div>
@@ -322,14 +338,18 @@ export default function FarmerManageProducts() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Product Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleFormChange} className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest h-12 px-4 outline-none font-medium" />
+                <select name="name" value={formData.name} onChange={handleFormChange} className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest h-12 px-4 outline-none font-medium appearance-none">
+                  <option value="" disabled>Select Official Product</option>
+                  {officialProducts.map(op => <option key={op.id} value={op.product_name}>{op.product_name}</option>)}
+                </select>
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Category</label>
-                <select name="category" value={formData.category} onChange={handleFormChange} className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest h-12 px-4 outline-none font-medium">
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Category (Auto-selected)</label>
+                <select name="category" value={formData.category} onChange={handleFormChange} disabled className="w-full rounded-xl border border-outline-variant/50 bg-surface-container-lowest h-12 px-4 outline-none font-medium appearance-none opacity-70 cursor-not-allowed">
+                   <option value="" disabled>Auto-filled</option>
                    {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
-                <p className="mt-2 text-xs font-bold text-green-600">Base Price: {getPriceFromCategory(formData.category)} DZD</p>
+                <p className="mt-2 text-xs font-bold text-green-600">Base Price: {getPriceFromOfficialProduct(formData.name)} DZD</p>
               </div>
           </div>
           <div>

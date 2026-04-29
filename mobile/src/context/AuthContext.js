@@ -48,7 +48,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    isLoggedIn();
+    const init = async () => {
+      try {
+        await logout(); // Clear any existing session to start at Login
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    init();
   }, []);
 
   return (

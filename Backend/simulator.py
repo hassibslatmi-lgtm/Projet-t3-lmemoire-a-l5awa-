@@ -29,7 +29,7 @@ def update_iot_location(animal_id, lat, lng):
         if response.status_code == 200:
             data = response.json()
             # Explicitly showing which ID was updated in the simulator log
-            print(f"[{time.strftime('%H:%M:%S')}] ✅ IoT Update Success (Target ID #{animal_id})!")
+            print(f"[{time.strftime('%H:%M:%S')}]  IoT Update Success (Target ID #{animal_id})!")
             print(f"   🐾 DB Returned ID: {data.get('internal_id', 'Unknown')}")
             print(f"   🌍 Location: {data.get('region', 'Unknown')} ({data.get('location_name', 'Unknown')})")
         elif response.status_code == 404:
