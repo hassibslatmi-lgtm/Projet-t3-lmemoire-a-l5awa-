@@ -10,6 +10,12 @@ export default function TransporterManageProfile() {
     username: '',
     email: '',
   });
+  const [transporterData, setTransporterData] = useState({
+    driver_license_number: '',
+    license_type: '',
+    vehicle_name: '',
+    license_expiry_date: ''
+  });
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -36,6 +42,14 @@ export default function TransporterManageProfile() {
           username: data.username || '',
           email: data.email || '',
         });
+        if (data.transporter) {
+          setTransporterData({
+            driver_license_number: data.transporter.driver_license_number || '',
+            license_type: data.transporter.license_type || '',
+            vehicle_name: data.transporter.vehicle_name || '',
+            license_expiry_date: data.transporter.license_expiry_date || ''
+          });
+        }
         if (data.profile_photo_url) {
           setPreviewImage(data.profile_photo_url);
         }
@@ -59,6 +73,11 @@ export default function TransporterManageProfile() {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTransporterInputChange = (e) => {
+    const { name, value } = e.target;
+    setTransporterData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -76,6 +95,7 @@ export default function TransporterManageProfile() {
     formData.append('phone', profile.phone);
     formData.append('username', profile.username);
     formData.append('email', profile.email);
+    formData.append('extra_data', JSON.stringify(transporterData));
     
     if (selectedFile) {
       formData.append('profile_photo', selectedFile);
@@ -121,37 +141,42 @@ export default function TransporterManageProfile() {
   }
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen font-sans flex">
+    <div className="bg-surface-container-lowest text-on-surface antialiased font-sans min-h-screen flex">
       {/* Sidebar - Consistent with Dashboard */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col fixed h-full z-50">
+      <aside className="hidden lg:flex w-64 bg-surface border-r border-outline-variant/30 flex-col fixed h-full z-50">
         <div className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/home')}>
-          <div className="bg-[#2D5A27] p-2 rounded-lg text-white flex items-center justify-center">
+          <div className="bg-primary p-2 rounded-lg text-white flex items-center justify-center">
             <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>agriculture</span>
           </div>
-          <h2 className="text-[#2D5A27] text-xl font-bold tracking-tight uppercase">AgriGov</h2>
+          <h2 className="text-primary text-xl font-bold tracking-tight">AgriGov</h2>
         </div>
         <nav className="flex-1 px-4 space-y-2 mt-4">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer font-medium"
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium"
                onClick={() => navigate('/transporter/dashboard')}>
             <span className="material-symbols-outlined">dashboard</span>
             <span>Dashboard</span>
           </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#2D5A27] text-white shadow-md shadow-[#2D5A27]/20 cursor-pointer font-medium">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-on-primary shadow-md shadow-primary/20 cursor-pointer font-medium">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
             <span>Profile</span>
           </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer font-medium"
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium"
                onClick={() => navigate('/transporter/requests')}>
             <span className="material-symbols-outlined">assignment</span>
             <span>Requests</span>
           </div>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium"
+               onClick={() => navigate('/transporter/missions')}>
+            <span className="material-symbols-outlined">local_shipping</span>
+            <span>My Missions</span>
+          </div>
         </nav>
-        <div className="p-4 border-t border-gray-100">
-           <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
-             <img src={previewImage || 'https://ui-avatars.com/api/?name=User'} className="w-10 h-10 rounded-full object-cover border border-gray-200" alt="Profile" />
+        <div className="p-4 border-t border-outline-variant/30">
+           <div className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
+             <img src={previewImage || 'https://ui-avatars.com/api/?name=User'} className="w-10 h-10 rounded-full object-cover border border-outline-variant/50" alt="Profile" />
              <div className="flex-1 overflow-hidden">
-               <p className="text-xs font-bold truncate text-gray-800">{profile.full_name || 'Transporter'}</p>
-               <p className="text-[10px] text-gray-500 uppercase tracking-wider">Transporter</p>
+               <p className="text-xs font-bold truncate text-on-surface">{profile.full_name || 'Transporter'}</p>
+               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">Transporter</p>
              </div>
            </div>
         </div>
@@ -159,13 +184,13 @@ export default function TransporterManageProfile() {
 
       <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between sticky top-0 z-40">
+        <header className="h-16 bg-white border-b border-outline-variant/30 px-6 flex items-center justify-between sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold text-gray-800 lg:block hidden">Manage Profile</h1>
+            <h1 className="text-lg font-bold text-on-surface lg:block hidden">Manage Profile</h1>
           </div>
           <div className="flex items-center gap-4">
             <NotificationDropdown role="transporter" />
-            <div className="h-8 w-px bg-gray-200 mx-2"></div>
+            <div className="h-8 w-px bg-outline-variant/30 mx-2"></div>
             <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors text-sm font-bold">
               <span className="material-symbols-outlined text-lg">logout</span>
               <span className="hidden sm:inline">Logout</span>
@@ -271,6 +296,69 @@ export default function TransporterManageProfile() {
                     placeholder="email@example.com"
                     required
                   />
+                </div>
+
+                {/* Transporter Credentials Section */}
+                <div className="mt-8 pt-8 border-t border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#2D5A27]">local_shipping</span>
+                    Transporter Credentials
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">License Number</label>
+                      <input 
+                        type="text" 
+                        name="driver_license_number"
+                        value={transporterData.driver_license_number}
+                        onChange={handleTransporterInputChange}
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-[#2D5A27]/10 focus:border-[#2D5A27] outline-none transition-all font-semibold"
+                        placeholder="DL-123456"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">License Type</label>
+                      <select 
+                        name="license_type"
+                        value={transporterData.license_type}
+                        onChange={handleTransporterInputChange}
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-[#2D5A27]/10 focus:border-[#2D5A27] outline-none transition-all font-semibold cursor-pointer appearance-none"
+                        required
+                      >
+                        <option value="">Select License Type</option>
+                        <option value="Heavy Truck (Class C/E)">Heavy Truck (Class C/E)</option>
+                        <option value="Light Commercial">Light Commercial</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Vehicle Name</label>
+                      <input 
+                        type="text" 
+                        name="vehicle_name"
+                        value={transporterData.vehicle_name}
+                        onChange={handleTransporterInputChange}
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-[#2D5A27]/10 focus:border-[#2D5A27] outline-none transition-all font-semibold"
+                        placeholder="Toyota Hilux"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Expiry Date</label>
+                      <input 
+                        type="date" 
+                        name="license_expiry_date"
+                        value={transporterData.license_expiry_date}
+                        onChange={handleTransporterInputChange}
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-[#2D5A27]/10 focus:border-[#2D5A27] outline-none transition-all font-semibold cursor-pointer"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="pt-6">

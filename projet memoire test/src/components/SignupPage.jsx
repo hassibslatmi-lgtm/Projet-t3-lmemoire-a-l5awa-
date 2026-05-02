@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 // التأكد من استيراد دالة signup من الـ API المنظم
 import { signup } from '../services/api';
 
+import farmerImg from '../assets/farmer.jpg';
+import buyerImg from '../assets/buyer.jpg';
+import transporterImg from '../assets/transporter.jpg';
+
 export default function SignupPage() {
   const [role, setRole] = useState('Farmer');
   const navigate  = useNavigate();
@@ -106,20 +110,20 @@ export default function SignupPage() {
     <div className="bg-[#fcfdf6] font-body text-gray-900 antialiased overflow-x-hidden">
       <main className="min-h-screen flex flex-col md:flex-row">
         {/* Left Side (Image & Brand) */}
-        <section className="relative hidden md:flex md:w-5/12 lg:w-1/2 flex-col justify-between p-12 overflow-hidden bg-[#386a20] text-white">
+        <section className="relative hidden md:flex md:w-5/12 lg:w-1/2 flex-col justify-between p-12 overflow-hidden bg-black text-white">
           <div className="absolute inset-0 z-0">
             <img 
               alt={`${role} background`} 
-              className="w-full h-full object-cover opacity-40 transition-opacity duration-500" 
+              className="w-full h-full object-cover opacity-80 transition-opacity duration-500" 
               src={
                 role === 'Farmer' 
-                  ? "https://images.unsplash.com/photo-1500382017468-9049fee74a62?auto=format&fit=crop&q=80&w=2000"
+                  ? farmerImg
                   : role === 'Buyer'
-                  ? "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000"
-                  : "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=2000"
+                  ? buyerImg
+                  : transporterImg
               } 
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#386a20]/40 to-[#386a20]"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
           </div>
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-16">

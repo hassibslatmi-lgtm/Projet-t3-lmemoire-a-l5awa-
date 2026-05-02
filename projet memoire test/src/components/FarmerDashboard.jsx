@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationDropdown from './NotificationDropdown';
+import ChatWidget from './ChatWidget';
 import { 
   clearAuth, 
   getName, 
@@ -461,6 +462,7 @@ export default function FarmerDashboard() {
             </div>
           </div>
       )}
+      <ChatWidget role="FARMER" />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // استيراد الدوال والمساعدات من ملف api.js الخاص بك
 import { getCategories, getToken, getRole } from '../services/api'; 
+import ChatWidget from './ChatWidget'; 
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -276,6 +277,7 @@ export default function HomePage() {
           <p>© 2026 AgriGov Marketplace. All rights reserved.</p>
         </div>
       </footer>
+      <ChatWidget role={getRole() || 'GUEST'} />
     </div>
   );
 }

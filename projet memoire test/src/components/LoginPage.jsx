@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login, saveAuth } from '../services/api';
 
+import loginImg from '../assets/login.jpg';
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -53,12 +55,13 @@ export default function LoginPage() {
     <div className="bg-[#fcfdf6] font-body text-gray-900 antialiased">
       <main className="min-h-screen flex items-stretch">
         {/* الجانب البصري */}
-        <section className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#386a20]">
+        <section className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-black">
           <img
             alt="Agricultural Landscape"
-            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60"
-            src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=2000"
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
+            src={loginImg}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
           <div className="relative z-10 flex flex-col justify-between p-12 h-full w-full">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">

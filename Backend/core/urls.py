@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/orders/', include('orders.urls')),
     path('api/notifications/', include('notifications.urls')),
     path('api/iot/', include('iot.urls')),
+    path('api/chat/', include('chat_assistant.urls')),
 ]
 
 # هاد السطر هو "المفتاح" باش الصور يبانو في وقت التطوير

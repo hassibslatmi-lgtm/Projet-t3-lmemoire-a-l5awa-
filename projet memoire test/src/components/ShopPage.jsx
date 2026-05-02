@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getCategories, getToken, getRole } from '../services/api';
+import ChatWidget from './ChatWidget';
 
 export default function ShopPage() {
   const navigate = useNavigate();
@@ -247,6 +248,7 @@ export default function ShopPage() {
           <p>© 2026 AgriGov Marketplace. Standard Government Protocol v3.1</p>
         </div>
       </footer>
+      <ChatWidget role="BUYER" />
     </div>
   );
 }
