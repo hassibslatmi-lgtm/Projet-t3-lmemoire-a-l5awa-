@@ -150,4 +150,37 @@ export const getFarmerProducts = async () => {
   return response.data;
 };
 
+export const getCategories = async () => {
+  const response = await api.get('/api/products/categories/');
+  return response.data;
+};
+
+export const getOfficialProducts = async () => {
+  const response = await api.get('/api/products/official-prices/');
+  return response.data;
+};
+
+export const addFarmerProduct = async (formData) => {
+  const response = await api.post('/api/products/farmer/products/add/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const updateFarmerProduct = async (id, formData) => {
+  const response = await api.patch(`/api/products/${id}/update/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const deleteFarmerProduct = async (id) => {
+  const response = await api.delete(`/api/products/farmer/products/${id}/delete/`);
+  return response.data;
+};
+
 export default api;

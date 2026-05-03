@@ -26,7 +26,9 @@ def query_agribot_ai(system_prompt, context_data, user_message):
     
     headers = {
         "Authorization": f"Bearer {AI_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-Title": "AgriGov"
     }
     
     payload = {
