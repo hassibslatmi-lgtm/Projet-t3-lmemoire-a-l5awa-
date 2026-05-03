@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationDropdown from './NotificationDropdown';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getTransporterStats, getTransporterMissions, getName, clearAuth, getFarmerProfile } from '../services/api';
 
 const BASE_URL = 'http://127.0.0.1:8000';
@@ -20,6 +21,14 @@ export default function TransporterDashboard() {
     if (url.startsWith('http')) return url;
     return `${BASE_URL}${url}`;
   };
+
+  // --- Mock Data ---
+  const activityData = [
+    { week: 'Week 1', completed: 12, pending: 2 },
+    { week: 'Week 2', completed: 15, pending: 4 },
+    { week: 'Week 3', completed: 10, pending: 1 },
+    { week: 'Week 4', completed: 18, pending: 5 },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -176,6 +185,27 @@ export default function TransporterDashboard() {
                   <p className="text-3xl md:text-4xl font-black text-slate-800">{loading ? '...' : stats.active_missions}</p>
                 </div>
               </div>
+            </div>
+
+            {/* --- Analytics Charts Section --- */}
+            <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+               <h2 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">bar_chart</span>
+                  Mission Activity (This Month)
+               </h2>
+               <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                     <BarChart data={activityData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dx={-10} />
+                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                        <Legend verticalAlign="top" height={36} iconType="circle" />
+                        <Bar name="Completed" dataKey="completed" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} />
+                        <Bar name="Pending" dataKey="pending" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={30} />
+                     </BarChart>
+                  </ResponsiveContainer>
+               </div>
             </div>
 
             {/* Main Grid Two Column */}

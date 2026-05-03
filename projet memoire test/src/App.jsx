@@ -26,7 +26,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         {/* Oversight is now a tab within AdminDashboard */}
         <Route path="/farmer/profile" element={<FarmerManageProfile />} />
-        <Route path="/farmer/products" element={<FarmerManageProducts />} />
+        <Route path="/farmer/products" element={<Navigate to="/farmer/dashboard" state={{ section: 'products' }} replace />} />
         <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
         <Route path="/farmer" element={<Navigate to="/farmer/dashboard" replace />} />
         <Route path="/home" element={<HomePage />} />

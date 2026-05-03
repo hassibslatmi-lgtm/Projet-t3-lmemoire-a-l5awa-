@@ -158,17 +158,21 @@ export default function FarmerManageProfile() {
             <h2 className="text-primary text-xl font-bold tracking-tight">AgriGov</h2>
           </div>
           <nav className="flex-1 px-4 space-y-2 mt-4">
-            <div onClick={() => navigate('/farmer/dashboard')} className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium">
+            <div onClick={() => navigate('/farmer/dashboard', { state: { section: 'dashboard' } })} className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium">
               <span className="material-symbols-outlined">dashboard</span>
               <span>Dashboard</span>
             </div>
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-on-primary shadow-md shadow-primary/20 cursor-pointer font-medium">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
-              <span>Profile</span>
+              <span>My Profile</span>
             </div>
-            <div onClick={() => navigate('/farmer/products')} className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium">
+            <div onClick={() => navigate('/farmer/dashboard', { state: { section: 'products' } })} className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium">
               <span className="material-symbols-outlined">inventory_2</span>
               <span>My Products</span>
+            </div>
+            <div onClick={() => navigate('/farmer/dashboard', { state: { section: 'orders' } })} className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-medium">
+              <span className="material-symbols-outlined">receipt_long</span>
+              <span>Orders</span>
             </div>
           </nav>
 

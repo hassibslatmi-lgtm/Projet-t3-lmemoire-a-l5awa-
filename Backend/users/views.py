@@ -17,14 +17,14 @@ def signup(request):
     if serializer.is_valid():
         user = serializer.save()
         
-        subject = "مرحباً بك في AgriGov ✅"
-        message = f"مرحباً {user.full_name}، تم تسجيل حسابك بنجاح وهو الآن قيد المراجعة من طرف الإدارة."
+        subject = "Welcome to AgriGov ✅"
+        message = f"Hello {user.full_name}, your account has been successfully created and is currently under review by the administration."
         try:
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
         except Exception as e:
             print(f"Error sending signup email: {e}")
 
-        return Response({"message": "تم التسجيل بنجاح. حسابك قيد المراجعة."}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Registration successful. Your account is under review."}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # (Login)
@@ -35,21 +35,21 @@ def login_api(request):
     password = request.data.get('password')
 
     if not email or not password:
-        return Response({'error': 'يرجى تقديم الإيميل وكلمة السر'}, status=400)
+        return Response({'error': 'Please provide email and password'}, status=400)
 
     try:
         user_obj = User.objects.get(email=email)
         
         if not user_obj.check_password(password):
-            return Response({'error': 'كلمة السر خاطئة'}, status=400)
+            return Response({'error': 'Incorrect password'}, status=400)
 
         if not user_obj.is_staff and not user_obj.is_superuser:
             if user_obj.status == 'pending':
-                return Response({'error': 'حسابك مازال في مرحلة المراجعة.'}, status=403)
+                return Response({'error': 'Your account is still under review.'}, status=403)
             if user_obj.status == 'rejected':
-                return Response({'error': 'تم رفض طلبك.', 'reason': user_obj.rejection_reason}, status=403)
+                return Response({'error': 'Your request has been rejected.', 'reason': user_obj.rejection_reason}, status=403)
             if user_obj.status == 'blocked':
-                return Response({'error': 'حسابك محظور من طرف الإدارة.'}, status=403)
+                return Response({'error': 'Your account has been blocked by the administration.'}, status=403)
 
         token, _ = Token.objects.get_or_create(user=user_obj)
         
@@ -63,7 +63,7 @@ def login_api(request):
         }, status=200)
 
     except User.DoesNotExist:
-        return Response({'error': 'الحساب غير موجود.'}, status=404)
+        return Response({'error': 'Account not found.'}, status=404)
 
 # get pending users list
 @api_view(['GET'])
@@ -88,29 +88,29 @@ def admin_manage_user(request, user_id):
     try:
         user = User.objects.get(id=user_id)
         action = request.data.get('action') 
-        reason = request.data.get('reason', 'لم يتم ذكر سبب محدد')
+        reason = request.data.get('reason', 'No specific reason provided')
 
         if action == 'approve':
             user.status = 'active'
             user.is_active = True
-            subject = "تم تفعيل حسابك في AgriGov ✅"
-            message = f"مرحباً {user.full_name}، نتشرف بإعلامك أنه تم قبول طلبك."
+            subject = "Your AgriGov account has been activated ✅"
+            message = f"Hello {user.full_name}, we are pleased to inform you that your request has been accepted."
         elif action == 'reject':
             user.status = 'rejected'
             user.is_active = False
             user.rejection_reason = reason
-            subject = "تحديث بخصوص طلب انضمامك ❌"
-            message = f"مرحباً {user.full_name}، تم رفض طلبك.\nالسبب: {reason}"
+            subject = "Update regarding your join request ❌"
+            message = f"Hello {user.full_name}, your request has been rejected.\nReason: {reason}"
         else:
-            return Response({'error': 'إجراء غير صالح'}, status=400)
+            return Response({'error': 'Invalid action'}, status=400)
 
         user.save()
         try:
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
         except: pass
-        return Response({'message': f'تم تنفيذ العملية بنجاح للمستخدم {user.full_name}'})
+        return Response({'message': f'Operation successful for user {user.full_name}'})
     except User.DoesNotExist:
-        return Response({'error': 'المستخدم غير موجود'}, status=404)
+        return Response({'error': 'User not found'}, status=404)
 
 # (Toggle Block)
 @api_view(['POST'])
@@ -121,17 +121,17 @@ def toggle_user_block(request, user_id):
         if user.status == 'active':
             user.status = 'blocked'
             user.is_active = False
-            res_msg = f"تم حظر المستخدم {user.full_name}."
+            res_msg = f"User {user.full_name} has been blocked."
         elif user.status == 'blocked':
             user.status = 'active'
             user.is_active = True
-            res_msg = f"تم إلغاء الحظر عن المستخدم {user.full_name}."
+            res_msg = f"Block removed from user {user.full_name}."
         else:
-            return Response({'error': 'لا يمكن حظر مستخدم في حالة الانتظار.'}, status=400)
+            return Response({'error': 'Cannot block a pending user.'}, status=400)
         user.save()
         return Response({'message': res_msg, 'new_status': user.status}, status=200)
     except User.DoesNotExist:
-        return Response({'error': 'المستخدم غير موجود'}, status=404)
+        return Response({'error': 'User not found'}, status=404)
 
 # Admin Dashboard Stats
 @api_view(['GET'])
@@ -161,7 +161,7 @@ def manage_profile(request):
         if serializer.is_valid():
             serializer.save()
             return Response({
-                "message": "تم تحديث الحساب بنجاح ✅",
+                "message": "Account updated successfully ✅",
                 "user": serializer.data
             }, status=200)
         return Response(serializer.errors, status=400)

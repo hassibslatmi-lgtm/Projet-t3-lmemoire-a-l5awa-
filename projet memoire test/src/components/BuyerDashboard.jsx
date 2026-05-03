@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import NotificationDropdown from './NotificationDropdown';
 import ChatWidget from './ChatWidget';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const BASE_URL = 'http://127.0.0.1:8000';
 
@@ -35,6 +36,11 @@ export default function BuyerDashboard() {
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [complaint, setComplaint] = useState('');
   const [complaintSent, setComplaintSent] = useState(false);
+  const [totalSpending, setTotalSpending] = useState(0);
+  const [complaintsList, setComplaintsList] = useState([
+    { id: 'CMP-001', subject: 'Late Delivery', status: 'Resolved', date: '2026-04-15' },
+    { id: 'CMP-002', subject: 'Damaged Products', status: 'Pending', date: '2026-04-28' },
+  ]);
 
   const token = localStorage.getItem('agrigov_token');
 
@@ -44,12 +50,47 @@ export default function BuyerDashboard() {
     return `${BASE_URL}${url}`;
   };
 
+  // --- Mock Data for Charts ---
+  const priceHistoryData = [
+    { month: 'Jan', price: 120 },
+    { month: 'Feb', price: 135 },
+    { month: 'Mar', price: 125 },
+    { month: 'Apr', price: 140 },
+    { month: 'May', price: 155 },
+    { month: 'Jun', price: 145 },
+  ];
+
+  const orderAnalyticsData = [
+    { name: 'Potatoes', volume: 400 },
+    { name: 'Tomatoes', volume: 300 },
+    { name: 'Onions', volume: 500 },
+    { name: 'Carrots', volume: 200 },
+  ];
+
+  const spendingHistoryData = [
+    { month: 'Jan', amount: 12000 },
+    { month: 'Feb', amount: 15000 },
+    { month: 'Mar', amount: 11000 },
+    { month: 'Apr', amount: 18000 },
+    { month: 'May', amount: 22000 },
+    { month: 'Jun', amount: 19000 },
+  ];
+
+  const priceTrendData = [
+    { week: 'Week 1', price: 120 },
+    { week: 'Week 2', price: 115 },
+    { week: 'Week 3', price: 130 },
+    { week: 'Week 4', price: 125 },
+    { week: 'Week 5', price: 140 },
+    { week: 'Week 6', price: 135 },
+  ];
+
   useEffect(() => {
     const fetchData = async () => {
       setFetching(true);
       try {
         const headers = { Authorization: `Token ${token}` };
-        
+
         // Fetch Profile
         const profileRes = await axios.get(`${BASE_URL}/users/profile/manage/`, { headers });
         const p = profileRes.data;
@@ -77,7 +118,7 @@ export default function BuyerDashboard() {
 
           // Get product info from first item
           const firstItem = order.items?.[0] || {};
-          
+
           return {
             id: order.id,
             product: firstItem.product_name || 'Agri Product',
@@ -88,6 +129,13 @@ export default function BuyerDashboard() {
           };
         });
         setOrders(mappedOrders);
+
+        // Calculate total spending for stats
+        const total = mappedOrders.reduce((sum, order) => {
+          const amount = parseFloat(order.price.replace('DZD ', '')) || 0;
+          return sum + amount;
+        }, 0);
+        setTotalSpending(total);
 
       } catch (err) {
         console.error('Fetch error:', err);
@@ -122,7 +170,7 @@ export default function BuyerDashboard() {
       formData.append('sex', profile.sex);
       formData.append('address', profile.address);
       if (profile.password) formData.append('password', profile.password);
-      
+
       // Commercial register is in extra_data for buyer
       const extra_data = { commercial_register: profile.commercial_register };
       formData.append('extra_data', JSON.stringify(extra_data));
@@ -137,7 +185,7 @@ export default function BuyerDashboard() {
           'Authorization': `Token ${token}`
         }
       });
-      
+
       // Sync UI
       window.location.reload();
     } catch (err) {
@@ -150,6 +198,13 @@ export default function BuyerDashboard() {
 
   const handleSendComplaint = () => {
     if (!complaint.trim()) return;
+    const newComplaint = {
+      id: `CMP-00${complaintsList.length + 1}`,
+      subject: complaint.length > 30 ? complaint.substring(0, 30) + '...' : complaint,
+      status: 'Pending',
+      date: new Date().toISOString().split('T')[0]
+    };
+    setComplaintsList([newComplaint, ...complaintsList]);
     setComplaintSent(true);
     setTimeout(() => {
       setShowComplaintModal(false);
@@ -161,6 +216,7 @@ export default function BuyerDashboard() {
   const navItems = [
     { key: 'profile', label: 'Manage Profile', icon: 'person' },
     { key: 'orders', label: 'My Orders', icon: 'receipt_long' },
+    { key: 'complaints', label: 'Complaints & Reports', icon: 'report_gmailerrorred' },
   ];
 
   if (fetching) {
@@ -193,8 +249,8 @@ export default function BuyerDashboard() {
                 key={item.key}
                 onClick={() => setActiveSection(item.key)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer font-medium transition-colors ${activeSection === item.key
-                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                    : 'text-on-surface-variant hover:bg-surface-container-high'
+                  ? 'bg-primary text-white shadow-md shadow-primary/20'
+                  : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
               >
                 <span className="material-symbols-outlined" style={activeSection === item.key ? { fontVariationSettings: "'FILL' 1" } : {}}>{item.icon}</span>
@@ -204,7 +260,15 @@ export default function BuyerDashboard() {
           </nav>
 
           {/* Sidebar user mini-card */}
-          <div className="p-4 border-t border-outline-variant/30">
+          <div className="p-4 border-t border-outline-variant/30 space-y-3">
+            <button
+              onClick={() => navigate('/home')}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-primary/20 text-primary font-bold text-sm hover:bg-primary/5 transition-all group"
+            >
+              <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+              Back to Shopping
+            </button>
+
             <div className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
               <div className="w-10 h-10 rounded-full bg-center bg-cover border border-outline-variant/50" style={{ backgroundImage: `url("${profilePic}")` }}></div>
               <div className="flex-1 overflow-hidden">
@@ -242,6 +306,7 @@ export default function BuyerDashboard() {
           {/* ══ PAGE CONTENT ══ */}
           <div className="p-4 md:p-8 space-y-8 flex-1 max-w-5xl mx-auto w-full">
 
+
             {/* ─── MANAGE PROFILE ─── */}
             {activeSection === 'profile' && (
               <>
@@ -262,7 +327,7 @@ export default function BuyerDashboard() {
                   </div>
                   <div className="flex gap-3">
                     <button className="px-6 py-2.5 rounded-xl border border-outline-variant/50 text-on-surface-variant font-bold text-sm hover:bg-surface-container-high transition-colors">Cancel</button>
-                    <button 
+                    <button
                       onClick={handleSaveProfile}
                       disabled={isUpdating}
                       className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:brightness-105 transition-all shadow-sm flex items-center gap-2"
@@ -385,71 +450,250 @@ export default function BuyerDashboard() {
 
             {/* ─── MY ORDERS ─── */}
             {activeSection === 'orders' && (
-              <>
-                {/* Welcome Banner */}
-                <div className="bg-primary/5 border border-primary/15 rounded-xl px-6 py-5 flex items-center gap-4">
-                  <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
-                  <div>
-                    <h1 className="text-xl font-black text-on-surface">Welcome back, {profile.full_name?.split(' ')[0] || 'User'}! 👋</h1>
-                    <p className="text-on-surface-variant text-sm mt-0.5">Here is your complete order history</p>
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                {/* Header Banner */}
+                <div className="bg-primary/10 border border-primary/20 rounded-[2rem] px-10 py-8 flex flex-col md:flex-row items-center gap-8 shadow-sm">
+                  <div className="bg-primary p-4 rounded-2xl text-white shadow-lg shadow-primary/20">
+                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
+                  </div>
+                  <div className="text-center md:text-left">
+                    <h1 className="text-3xl font-black text-on-surface tracking-tight">Order History & Analytics</h1>
+                    <p className="text-on-surface-variant text-base mt-1 font-medium opacity-80">Track your spending, market trends, and delivery status in one place.</p>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-black text-on-surface tracking-tight">My Orders</h2>
-                    <p className="text-on-surface-variant mt-1 text-sm">{orders.length} orders total</p>
+                {/* Stats Cards Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-surface p-6 rounded-[2rem] border border-outline-variant/30 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+                    <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl font-black">shopping_bag</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-1">Total Orders</p>
+                      <h3 className="text-2xl font-black text-on-surface">{orders.length}</h3>
+                    </div>
+                  </div>
+
+                  <div className="bg-surface p-6 rounded-[2rem] border border-outline-variant/30 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+                    <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl font-black">payments</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-1">Total Spending</p>
+                      <h3 className="text-2xl font-black text-on-surface">{totalSpending.toLocaleString()} DZD</h3>
+                    </div>
+                  </div>
+
+                  <div className="bg-surface p-6 rounded-[2rem] border border-outline-variant/30 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+                    <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl font-black">storefront</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-1">Market Products</p>
+                      <h3 className="text-2xl font-black text-on-surface">2,450</h3>
+                    </div>
                   </div>
                 </div>
 
-                {/* Orders List */}
-                <section className="bg-surface rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
-                  <div className="divide-y divide-outline-variant/20">
-                    {orders.length > 0 ? orders.map(order => {
-                      const sc = statusConfig[order.status] || statusConfig['Order Placed'];
-                      return (
-                        <div key={order.id} className="flex items-center gap-5 px-6 py-5 hover:bg-surface-container-lowest/50 transition-colors">
-                          {/* Product image */}
-                          <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-outline-variant/20 bg-slate-100">
-                            <img src={order.img} alt={order.product} className="w-full h-full object-cover" />
+                {/* Orders List & Main Chart */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                  {/* Recent Orders List */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between px-2">
+                      <h2 className="text-2xl font-black text-on-surface tracking-tight">Recent Orders</h2>
+                      <button className="text-primary font-bold text-sm hover:underline">View All History</button>
+                    </div>
+                    <div className="bg-surface rounded-[2rem] border border-outline-variant/30 shadow-sm overflow-hidden h-[500px] overflow-y-auto">
+                      <div className="divide-y divide-outline-variant/10">
+                        {orders.length > 0 ? orders.map(order => {
+                          const sc = statusConfig[order.status] || statusConfig['Order Placed'];
+                          return (
+                            <div key={order.id} className="flex items-center gap-4 px-5 py-4 hover:bg-surface-container-lowest/50 transition-colors">
+                              <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-outline-variant/20 bg-slate-100">
+                                <img src={order.img} alt={order.product} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-on-surface truncate text-sm">{order.product}</p>
+                                <p className="text-[11px] text-on-surface-variant mt-0.5 flex items-center gap-1 font-medium">
+                                  <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                                  {new Date(order.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                </p>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <p className="font-black text-primary text-sm">{order.price}</p>
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black border uppercase mt-1 ${sc.color}`}>
+                                  {order.status}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }) : (
+                          <div className="p-12 text-center text-on-surface-variant font-medium">
+                            No orders found.
                           </div>
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-on-surface truncate">{order.product}</p>
-                            <p className="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[13px]">calendar_today</span>
-                              {new Date(order.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </p>
-                            <p className="text-xs text-on-surface-variant mt-0.5 font-mono">#{order.id}</p>
-                          </div>
-                          {/* Price */}
-                          <p className="font-black text-primary text-lg shrink-0">{order.price}</p>
-                          {/* Status badge */}
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${sc.color} shrink-0`}>
-                            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>{sc.icon}</span>
-                            {order.status}
-                          </span>
-                        </div>
-                      );
-                    }) : (
-                      <div className="p-12 text-center text-on-surface-variant font-medium">
-                        No orders found. Start shopping to see your history!
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </section>
 
-                {/* Complaint button */}
-                <div className="flex justify-center pt-2">
+                  {/* Spending History Chart */}
+                  <div className="space-y-6">
+                    <div className="flex items-center px-2">
+                      <h2 className="text-2xl font-black text-on-surface tracking-tight">Spending Behavior</h2>
+                    </div>
+                    <div className="bg-surface p-8 rounded-[2rem] border border-outline-variant/30 shadow-sm flex flex-col h-[500px]">
+                      <div className="flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={spendingHistoryData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="colorSpending" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis
+                              dataKey="month"
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fontSize: 12, fill: '#64748b', fontWeight: 'bold' }}
+                              dy={15}
+                            />
+                            <YAxis
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fontSize: 12, fill: '#64748b', fontWeight: 'bold' }}
+                            />
+                            <RechartsTooltip
+                              contentStyle={{
+                                borderRadius: '24px',
+                                border: 'none',
+                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                padding: '16px'
+                              }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="amount"
+                              stroke="#3b82f6"
+                              strokeWidth={4}
+                              fillOpacity={1}
+                              fill="url(#colorSpending)"
+                              animationDuration={1500}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Secondary Charts Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-black text-on-surface tracking-tight px-2 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-amber-500 font-black">trending_up</span>
+                      Market Price Trend: Tomatoes
+                    </h2>
+                    <div className="bg-surface p-8 rounded-[2.5rem] border border-outline-variant/30 shadow-sm h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={priceTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} />
+                          <RechartsTooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                          <Line type="monotone" dataKey="price" stroke="#f59e0b" strokeWidth={4} dot={{ r: 6, strokeWidth: 3, fill: '#fff' }} activeDot={{ r: 8 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-black text-on-surface tracking-tight px-2 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-emerald-500 font-black">bar_chart</span>
+                      Most Purchased Categories
+                    </h2>
+                    <div className="bg-surface p-8 rounded-[2.5rem] border border-outline-variant/30 shadow-sm h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={orderAnalyticsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} />
+                          <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                          <Bar dataKey="volume" fill="#10b981" radius={[8, 8, 0, 0]} barSize={50} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Complaint Support Section */}
+                <div className="bg-red-50/50 border border-red-100 rounded-[3rem] p-12 text-center flex flex-col items-center gap-6 mt-16">
+                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-3xl font-black">support_agent</span>
+                  </div>
+                  <div className="max-w-xl">
+                    <h3 className="text-2xl font-black text-on-surface">Encountered an issue with an order?</h3>
+                    <p className="text-on-surface-variant font-medium mt-2 leading-relaxed">
+                      Our customer support team is here to help 24/7. Whether it's a delivery delay, product quality concern, or platform bug, we've got you covered.
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowComplaintModal(true)}
-                    className="flex items-center gap-2 px-6 py-3 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl font-bold text-sm transition-colors"
+                    className="flex items-center gap-3 px-10 py-4 bg-red-600 text-white rounded-2xl font-black text-lg transition-all shadow-xl shadow-red-600/20 hover:bg-red-700 hover:scale-105 active:scale-95"
                   >
-                    <span className="material-symbols-outlined text-lg">report_problem</span>
-                    Send a Complaint
+                    <span className="material-symbols-outlined text-xl">report_problem</span>
+                    Submit a Complaint
                   </button>
                 </div>
-              </>
+              </div>
+            )}
+
+            {/* ─── COMPLAINTS & REPORTS ─── */}
+            {activeSection === 'complaints' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-red-500/5 border border-red-500/15 rounded-xl px-6 py-5 flex items-center gap-4">
+                  <span className="material-symbols-outlined text-red-500 text-3xl">report_gmailerrorred</span>
+                  <div>
+                    <h1 className="text-xl font-black text-on-surface">Complaints & Reports</h1>
+                    <p className="text-on-surface-variant text-sm mt-0.5">View the status of your reported issues and platform feedback.</p>
+                  </div>
+                </div>
+
+                <section className="bg-surface rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase font-bold border-b border-outline-variant/30">
+                        <tr>
+                          <th className="px-6 py-4">ID</th>
+                          <th className="px-6 py-4">Issue / Subject</th>
+                          <th className="px-6 py-4">Date Submitted</th>
+                          <th className="px-6 py-4 text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant/20">
+                        {complaintsList.map(item => (
+                          <tr key={item.id} className="hover:bg-surface-container-lowest transition-colors">
+                            <td className="px-6 py-4 font-mono font-bold text-primary text-xs">{item.id}</td>
+                            <td className="px-6 py-4">
+                              <p className="font-bold text-on-surface text-sm">{item.subject}</p>
+                            </td>
+                            <td className="px-6 py-4 text-xs font-medium text-on-surface-variant">
+                              {new Date(item.date).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${item.status === 'Resolved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                {item.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
             )}
           </div>
 
