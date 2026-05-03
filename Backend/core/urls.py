@@ -29,7 +29,8 @@ def home(request):
             "users": "/users/",
             "products": "/api/products/",
             "orders": "/api/orders/",
-            "notifications": "/api/notifications/"
+            "notifications": "/api/notifications/",
+            "finance": "/api/finance/"
         }
     })
 
@@ -42,6 +43,7 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),
     path('api/iot/', include('iot.urls')),
     path('api/chat/', include('chat_assistant.urls')),
+    path('api/finance/', include('finance.urls')),
 ]
 
 # هاد السطر هو "المفتاح" باش الصور يبانو في وقت التطوير

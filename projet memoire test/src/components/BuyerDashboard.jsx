@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import NotificationDropdown from './NotificationDropdown';
 import ChatWidget from './ChatWidget';
+import BuyerStockPurchases from './BuyerStockPurchases';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+
 
 const BASE_URL = 'http://127.0.0.1:8000';
 
@@ -31,13 +33,16 @@ export default function BuyerDashboard() {
   });
 
   const [orders, setOrders] = useState([]);
+  const [rawOrders, setRawOrders] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [complaint, setComplaint] = useState('');
   const [complaintSent, setComplaintSent] = useState(false);
   const [totalSpending, setTotalSpending] = useState(0);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [complaintsList, setComplaintsList] = useState([
+
     { id: 'CMP-001', subject: 'Late Delivery', status: 'Resolved', date: '2026-04-15' },
     { id: 'CMP-002', subject: 'Damaged Products', status: 'Pending', date: '2026-04-28' },
   ]);
@@ -129,6 +134,8 @@ export default function BuyerDashboard() {
           };
         });
         setOrders(mappedOrders);
+        setRawOrders(ordersRes.data);
+
 
         // Calculate total spending for stats
         const total = mappedOrders.reduce((sum, order) => {
@@ -216,6 +223,7 @@ export default function BuyerDashboard() {
   const navItems = [
     { key: 'profile', label: 'Manage Profile', icon: 'person' },
     { key: 'orders', label: 'My Orders', icon: 'receipt_long' },
+    { key: 'stock', label: 'Stock & Purchases', icon: 'inventory' },
     { key: 'complaints', label: 'Complaints & Reports', icon: 'report_gmailerrorred' },
   ];
 
@@ -508,7 +516,15 @@ export default function BuyerDashboard() {
                         {orders.length > 0 ? orders.map(order => {
                           const sc = statusConfig[order.status] || statusConfig['Order Placed'];
                           return (
-                            <div key={order.id} className="flex items-center gap-4 px-5 py-4 hover:bg-surface-container-lowest/50 transition-colors">
+                            <div 
+                              key={order.id} 
+                              onClick={() => {
+                                const fullOrder = rawOrders.find(o => o.id === order.id);
+                                setSelectedOrder(fullOrder);
+                              }}
+                              className="flex items-center gap-4 px-5 py-4 hover:bg-surface-container-lowest/80 transition-colors cursor-pointer group/item"
+                            >
+
                               <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-outline-variant/20 bg-slate-100">
                                 <img src={order.img} alt={order.product} className="w-full h-full object-cover" />
                               </div>
@@ -649,7 +665,11 @@ export default function BuyerDashboard() {
               </div>
             )}
 
+            {/* ─── STOCK & PURCHASES ─── */}
+            {activeSection === 'stock' && <BuyerStockPurchases orders={rawOrders} />}
+
             {/* ─── COMPLAINTS & REPORTS ─── */}
+
             {activeSection === 'complaints' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-red-500/5 border border-red-500/15 rounded-xl px-6 py-5 flex items-center gap-4">
@@ -769,7 +789,152 @@ export default function BuyerDashboard() {
           </div>
         </div>
       )}
+      {/* ── Order Details Modal ── */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+          <div className="bg-surface w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-outline-variant/30 animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="p-8 bg-primary text-white flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black">Order Details</h2>
+                <p className="text-white/80 text-sm font-bold opacity-90 uppercase tracking-widest mt-0.5">Order #{selectedOrder.id}</p>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className="w-12 h-12 rounded-full hover:bg-white/10 flex items-center justify-center transition-all hover:scale-110 active:scale-95">
+                <span className="material-symbols-outlined text-2xl font-black">close</span>
+              </button>
+            </div>
+
+            <div className="p-8 max-h-[75vh] overflow-y-auto space-y-8 scrollbar-hide">
+              {/* --- 1. Order Status Stepper --- */}
+              <div className="bg-surface-container-low/50 p-6 rounded-[2rem] border border-outline-variant/20">
+                <div className="flex justify-between items-center relative px-2">
+                  {/* Progress Line */}
+                  <div className="absolute top-5 left-10 right-10 h-1 bg-outline-variant/30 -z-10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-1000" 
+                      style={{ width: selectedOrder.status === 'delivered' ? '100%' : selectedOrder.status === 'shipped' ? '50%' : '0%' }}
+                    ></div>
+                  </div>
+
+                  {[
+                    { key: 'paid', label: 'Confirmed', icon: 'check_circle' },
+                    { key: 'shipped', label: 'On the Way', icon: 'local_shipping' },
+                    { key: 'delivered', label: 'Delivered', icon: 'verified' }
+                  ].map((step, idx) => {
+                    const isCompleted = ['paid', 'shipped', 'delivered'].indexOf(selectedOrder.status) >= idx;
+                    const isActive = selectedOrder.status === step.key;
+                    return (
+                      <div key={step.key} className="flex flex-col items-center gap-3 relative z-10">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${isCompleted ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-surface border-2 border-outline-variant/50 text-on-surface-variant opacity-60'}`}>
+                          <span className="material-symbols-outlined text-sm font-black">{step.icon}</span>
+                        </div>
+                        <span className={`text-[10px] font-black uppercase tracking-tighter ${isCompleted ? 'text-primary' : 'text-on-surface-variant opacity-60'}`}>{step.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* --- 2. Information Grid --- */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Farmer Details */}
+                <div className="bg-surface p-6 rounded-[2rem] border border-outline-variant/30 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3 border-b border-outline-variant/20 pb-3">
+                    <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl">agriculture</span>
+                    <h3 className="font-black text-on-surface text-sm uppercase tracking-widest">Farmer Details</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Supplier Name</p>
+                      <p className="text-sm font-black text-on-surface">{selectedOrder.farmer_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Contact Number</p>
+                      <p className="text-sm font-black text-primary">{selectedOrder.farmer_phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Farm Location</p>
+                      <p className="text-sm font-bold text-on-surface-variant leading-tight">{selectedOrder.farmer_address}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transporter Details */}
+                {(selectedOrder.status === 'shipped' || selectedOrder.status === 'delivered') && selectedOrder.transporter_name ? (
+                  <div className="bg-surface p-6 rounded-[2rem] border border-outline-variant/30 shadow-sm space-y-4 border-l-4 border-l-blue-500 animate-in slide-in-from-right-4">
+                    <div className="flex items-center gap-3 border-b border-outline-variant/20 pb-3">
+                      <span className="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-xl">local_shipping</span>
+                      <h3 className="font-black text-on-surface text-sm uppercase tracking-widest">Delivery Info</h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Transporter Name</p>
+                        <p className="text-sm font-black text-on-surface">{selectedOrder.transporter_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Contact Number</p>
+                        <p className="text-sm font-black text-blue-600">{selectedOrder.transporter_phone}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Vehicle</p>
+                        <p className="text-sm font-black text-on-surface">{selectedOrder.vehicle_name || 'Agri Transporter'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-surface-container-lowest/50 p-6 rounded-[2rem] border border-dashed border-outline-variant/50 flex flex-col items-center justify-center text-center opacity-60 grayscale">
+                    <span className="material-symbols-outlined text-4xl mb-2">pending_actions</span>
+                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Waiting for Transport</p>
+                  </div>
+                )}
+              </div>
+
+              {/* --- 3. Order Items --- */}
+              <div className="bg-surface rounded-[2rem] border border-outline-variant/30 shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-outline-variant/20 bg-surface-container-low/30">
+                  <h3 className="font-black text-on-surface text-sm uppercase tracking-widest flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-600">list_alt</span>
+                    Order Summary
+                  </h3>
+                </div>
+                <div className="divide-y divide-outline-variant/10">
+                  {selectedOrder.items?.map((item, i) => (
+                    <div key={i} className="p-5 flex items-center justify-between hover:bg-surface-container-low transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden border border-outline-variant/20">
+                          <img src={getImageUrl(item.product_image)} alt={item.product_name} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="font-black text-on-surface text-sm">{item.product_name}</p>
+                          <p className="text-[11px] font-bold text-on-surface-variant opacity-60">QTY: {item.quantity}</p>
+                        </div>
+                      </div>
+                      <p className="font-black text-primary text-sm">{(item.quantity * item.price_at_purchase).toLocaleString()} DZD</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-6 bg-surface-container-low/50 flex justify-between items-center border-t border-outline-variant/20">
+                  <span className="text-xs font-black uppercase text-on-surface-variant tracking-widest">Total Amount</span>
+                  <span className="text-xl font-black text-primary">{parseFloat(selectedOrder.total_amount).toLocaleString()} DZD</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 bg-surface border-t border-outline-variant/20 flex gap-3 justify-end">
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="px-8 py-3 bg-on-surface text-surface rounded-2xl font-black text-sm hover:opacity-90 transition-all hover:shadow-lg active:scale-95"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ChatWidget role="BUYER" />
+
     </div>
   );
 }

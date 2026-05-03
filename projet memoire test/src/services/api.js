@@ -200,4 +200,40 @@ export const verifyAnimal = (id) =>
   request(`/api/iot/animals/${id}/verify/`, { method: 'POST' });
 
 export const getFarmerInventory = () =>
-  request('/api/iot/animals/farmer-inventory/'); // I might need to implement this in the backend
+  request('/api/iot/animals/farmer-inventory/');
+
+// ── Finance & Expenses (New) ──────────────────────────────────────────────────
+export const getExpenses = () => request('/api/finance/expenses/');
+
+export const addExpense = (expenseData) => 
+  request('/api/finance/expenses/', {
+    method: 'POST',
+    body: JSON.stringify(expenseData),
+  });
+
+export const updateExpense = (id, expenseData) => 
+  request(`/api/finance/expenses/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(expenseData),
+  });
+
+export const deleteExpense = (id) => 
+  request(`/api/finance/expenses/${id}/`, { method: 'DELETE' });
+
+// ── Buyer Stock & Inventory (New) ──────────────────────────────────────────────
+export const getBuyerStock = () => request('/api/finance/stock/');
+
+export const addBuyerStock = (stockData) => 
+  request('/api/finance/stock/', {
+    method: 'POST',
+    body: JSON.stringify(stockData),
+  });
+
+export const updateBuyerStock = (id, stockData) => 
+  request(`/api/finance/stock/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(stockData),
+  });
+
+export const deleteBuyerStock = (id) => 
+  request(`/api/finance/stock/${id}/`, { method: 'DELETE' });
